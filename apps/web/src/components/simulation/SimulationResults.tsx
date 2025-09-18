@@ -153,65 +153,81 @@ export default function SimulationResults({ result, quickEstimate, sensitivity, 
         </TabsList>
 
         <TabsContent value="distribution" className="space-y-4">
-          <Card>
+          <Card className="overflow-hidden">
             <CardHeader>
               <CardTitle>Financial Outcome Distribution</CardTitle>
               <CardDescription>
                 Range of possible financial outcomes with probabilities
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={outcomeDistribution}>
-                  <CartesianGrid strokeDasharray="3 3" />
+            <CardContent className="p-0 pb-6">
+              <ResponsiveContainer width="100%" height={350}>
+                <BarChart
+                  data={outcomeDistribution}
+                  margin={{ top: 20, right: 30, left: 60, bottom: 80 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                   <XAxis
                     dataKey="range"
-                    tick={{ fontSize: 12 }}
+                    tick={{ fontSize: 10, fill: '#666' }}
                     angle={-45}
                     textAnchor="end"
-                    height={80}
+                    height={100}
+                    interval={Math.floor(outcomeDistribution.length / 8)} // Show fewer labels
                   />
                   <YAxis
-                    label={{ value: 'Probability', angle: -90, position: 'insideLeft' }}
+                    label={{
+                      value: 'Probability',
+                      angle: -90,
+                      position: 'insideLeft',
+                      offset: 10,
+                      style: { textAnchor: 'middle' }
+                    }}
+                    tickFormatter={(value) => formatPercent(value)}
+                    tick={{ fill: '#666' }}
                   />
                   <Tooltip
                     formatter={(value: number) => formatPercent(value)}
-                    labelFormatter={(label) => `Outcome: ${label}`}
+                    labelFormatter={(label) => `Outcome Range: ${label}`}
+                    contentStyle={{
+                      backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                      border: '1px solid #ccc',
+                      borderRadius: '8px',
+                      padding: '10px'
+                    }}
                   />
-                  <Bar dataKey="probability" fill="#8884d8">
+                  <Bar
+                    dataKey="probability"
+                    fill="#3b82f6"
+                    radius={[4, 4, 0, 0]}
+                  >
                     {outcomeDistribution.map((entry, index) => (
                       <Cell
                         key={`cell-${index}`}
                         fill={
                           entry.isConfidenceInterval
-                            ? '#22c55e'
+                            ? '#10b981'
                             : entry.isMedian
-                            ? '#3b82f6'
-                            : '#8884d8'
+                            ? '#8b5cf6'
+                            : '#3b82f6'
                         }
                       />
                     ))}
                   </Bar>
-                  <ReferenceLine
-                    x={aggregateMetrics.expectedValue.financial}
-                    stroke="#ef4444"
-                    strokeDasharray="5 5"
-                    label="Expected"
-                  />
                 </BarChart>
               </ResponsiveContainer>
-              <div className="mt-4 flex gap-4 text-sm">
+              <div className="mt-6 flex justify-center gap-6 text-sm px-6">
                 <div className="flex items-center gap-2">
-                  <div className="h-3 w-3 bg-[#3b82f6]" />
-                  <span>Median</span>
+                  <div className="h-3 w-3 bg-[#3b82f6] rounded" />
+                  <span className="text-gray-600">Most Likely</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="h-3 w-3 bg-[#22c55e]" />
-                  <span>95% Confidence</span>
+                  <div className="h-3 w-3 bg-[#8b5cf6] rounded" />
+                  <span className="text-gray-600">Median Outcome</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="h-3 w-3 bg-[#ef4444]" />
-                  <span>Expected</span>
+                  <div className="h-3 w-3 bg-[#10b981] rounded" />
+                  <span className="text-gray-600">95% Confidence</span>
                 </div>
               </div>
             </CardContent>
@@ -219,78 +235,135 @@ export default function SimulationResults({ result, quickEstimate, sensitivity, 
         </TabsContent>
 
         <TabsContent value="timeline" className="space-y-4">
-          <Card>
+          <Card className="overflow-hidden">
             <CardHeader>
               <CardTitle>Projected Outcomes Over Time</CardTitle>
               <CardDescription>
                 Expected trajectory with confidence intervals
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={400}>
-                <LineChart data={timeSeriesData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="year" label={{ value: 'Years', position: 'insideBottom' }} />
+            <CardContent className="p-0 pb-6">
+              <ResponsiveContainer width="100%" height={450}>
+                <LineChart
+                  data={timeSeriesData}
+                  margin={{ top: 20, right: 30, left: 60, bottom: 60 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                  <XAxis
+                    dataKey="year"
+                    label={{
+                      value: 'Years from Now',
+                      position: 'insideBottom',
+                      offset: -5,
+                      style: { textAnchor: 'middle' }
+                    }}
+                    tick={{ fill: '#666' }}
+                  />
                   <YAxis
                     yAxisId="financial"
-                    label={{ value: 'Net Worth ($)', angle: -90, position: 'insideLeft' }}
-                    tickFormatter={(value) => `${value / 1000}k`}
+                    label={{
+                      value: 'Net Worth ($)',
+                      angle: -90,
+                      position: 'insideLeft',
+                      offset: 10,
+                      style: { textAnchor: 'middle' }
+                    }}
+                    tickFormatter={(value) => {
+                      if (value === 0) return '$0';
+                      if (value < 0) return `-$${Math.abs(value / 1000).toFixed(0)}k`;
+                      return `$${(value / 1000).toFixed(0)}k`;
+                    }}
+                    tick={{ fill: '#666' }}
+                    width={80}
                   />
                   <YAxis
                     yAxisId="satisfaction"
                     orientation="right"
-                    label={{ value: 'Satisfaction', angle: 90, position: 'insideRight' }}
+                    label={{
+                      value: 'Satisfaction Score',
+                      angle: 90,
+                      position: 'insideRight',
+                      offset: 10,
+                      style: { textAnchor: 'middle' }
+                    }}
                     domain={[0, 10]}
+                    ticks={[0, 2, 4, 6, 8, 10]}
+                    tick={{ fill: '#666' }}
+                    width={60}
                   />
                   <Tooltip
-                    formatter={(value: number, name: string) =>
-                      name.includes('Worth')
-                        ? formatCurrency(value)
-                        : value.toFixed(1)
-                    }
+                    formatter={(value: number, name: string) => {
+                      if (name.includes('Worth') || name.includes('Bound')) {
+                        return formatCurrency(value);
+                      }
+                      return value.toFixed(1);
+                    }}
+                    labelStyle={{ color: '#333', fontWeight: 'bold' }}
+                    contentStyle={{
+                      backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                      border: '1px solid #ccc',
+                      borderRadius: '8px',
+                      padding: '10px'
+                    }}
                   />
-                  <Legend />
+                  <Legend
+                    verticalAlign="bottom"
+                    height={36}
+                    wrapperStyle={{
+                      paddingTop: '20px',
+                      fontSize: '12px'
+                    }}
+                    iconType="line"
+                  />
                   <Line
                     yAxisId="financial"
                     type="monotone"
                     dataKey="netWorth"
-                    stroke="#8884d8"
-                    name="Net Worth"
-                    strokeWidth={2}
+                    stroke="#3b82f6"
+                    name="Expected Net Worth"
+                    strokeWidth={3}
+                    dot={{ r: 4, fill: '#3b82f6' }}
+                    activeDot={{ r: 6 }}
                   />
                   <Line
                     yAxisId="financial"
                     type="monotone"
                     dataKey="netWorthLower"
-                    stroke="#8884d8"
-                    strokeDasharray="3 3"
-                    name="Lower Bound"
-                    opacity={0.5}
+                    stroke="#3b82f6"
+                    strokeDasharray="5 5"
+                    name="95% Lower Bound"
+                    opacity={0.4}
+                    dot={false}
                   />
                   <Line
                     yAxisId="financial"
                     type="monotone"
                     dataKey="netWorthUpper"
-                    stroke="#8884d8"
-                    strokeDasharray="3 3"
-                    name="Upper Bound"
-                    opacity={0.5}
+                    stroke="#3b82f6"
+                    strokeDasharray="5 5"
+                    name="95% Upper Bound"
+                    opacity={0.4}
+                    dot={false}
                   />
                   <Line
                     yAxisId="satisfaction"
                     type="monotone"
                     dataKey="satisfaction"
-                    stroke="#82ca9d"
+                    stroke="#10b981"
                     name="Job Satisfaction"
-                    strokeWidth={2}
+                    strokeWidth={3}
+                    dot={{ r: 4, fill: '#10b981' }}
+                    activeDot={{ r: 6 }}
                   />
                   <Line
                     yAxisId="satisfaction"
                     type="monotone"
                     dataKey="happiness"
-                    stroke="#ffc658"
+                    stroke="#f59e0b"
                     name="Overall Happiness"
-                    strokeWidth={2}
+                    strokeWidth={3}
+                    dot={{ r: 4, fill: '#f59e0b' }}
+                    activeDot={{ r: 6 }}
                   />
                 </LineChart>
               </ResponsiveContainer>
@@ -299,28 +372,48 @@ export default function SimulationResults({ result, quickEstimate, sensitivity, 
         </TabsContent>
 
         <TabsContent value="scenarios" className="space-y-4">
-          <Card>
+          <Card className="overflow-hidden">
             <CardHeader>
               <CardTitle>Scenario Cloud</CardTitle>
               <CardDescription>
                 Each point represents a possible future scenario
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={400}>
-                <ScatterChart>
-                  <CartesianGrid strokeDasharray="3 3" />
+            <CardContent className="p-0 pb-6">
+              <ResponsiveContainer width="100%" height={450}>
+                <ScatterChart
+                  margin={{ top: 20, right: 30, left: 60, bottom: 60 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                   <XAxis
                     dataKey="financial"
                     name="Financial Outcome"
-                    tickFormatter={(value) => `${value / 1000}k`}
-                    label={{ value: 'Financial Outcome ($k)', position: 'insideBottom' }}
+                    tickFormatter={(value) => {
+                      if (value === 0) return '$0';
+                      if (value < 0) return `-$${Math.abs(value / 1000).toFixed(0)}k`;
+                      return `$${(value / 1000).toFixed(0)}k`;
+                    }}
+                    label={{
+                      value: 'Financial Outcome',
+                      position: 'insideBottom',
+                      offset: -5,
+                      style: { textAnchor: 'middle' }
+                    }}
+                    tick={{ fill: '#666' }}
                   />
                   <YAxis
                     dataKey="happiness"
                     name="Happiness"
-                    label={{ value: 'Overall Happiness', angle: -90, position: 'insideLeft' }}
+                    label={{
+                      value: 'Overall Happiness Score',
+                      angle: -90,
+                      position: 'insideLeft',
+                      offset: 10,
+                      style: { textAnchor: 'middle' }
+                    }}
                     domain={[0, 10]}
+                    ticks={[0, 2, 4, 6, 8, 10]}
+                    tick={{ fill: '#666' }}
                   />
                   <Tooltip
                     formatter={(value: number, name: string) =>
@@ -328,15 +421,46 @@ export default function SimulationResults({ result, quickEstimate, sensitivity, 
                         ? formatCurrency(value)
                         : value.toFixed(1)
                     }
+                    contentStyle={{
+                      backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                      border: '1px solid #ccc',
+                      borderRadius: '8px',
+                      padding: '10px'
+                    }}
+                    cursor={{ strokeDasharray: '3 3' }}
                   />
                   <Scatter
                     name="Scenarios"
                     data={scenarioCloud}
-                    fill="#8884d8"
-                    fillOpacity={0.6}
-                  />
+                    fill="#3b82f6"
+                  >
+                    {scenarioCloud.map((entry, index) => {
+                      // Color points based on outcome quality
+                      const color =
+                        entry.financial > 100000 && entry.happiness > 7
+                          ? '#10b981' // Green for good outcomes
+                          : entry.financial < 0 || entry.happiness < 5
+                          ? '#ef4444' // Red for poor outcomes
+                          : '#3b82f6'; // Blue for average
+                      return <Cell key={`cell-${index}`} fill={color} fillOpacity={0.7} />;
+                    })}
+                  </Scatter>
                 </ScatterChart>
               </ResponsiveContainer>
+              <div className="mt-6 flex justify-center gap-6 text-sm px-6">
+                <div className="flex items-center gap-2">
+                  <div className="h-3 w-3 bg-[#10b981] rounded-full opacity-70" />
+                  <span className="text-gray-600">Excellent Outcomes</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="h-3 w-3 bg-[#3b82f6] rounded-full opacity-70" />
+                  <span className="text-gray-600">Average Outcomes</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="h-3 w-3 bg-[#ef4444] rounded-full opacity-70" />
+                  <span className="text-gray-600">Poor Outcomes</span>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -428,27 +552,44 @@ function MetricCard({
   icon?: React.ElementType;
 }) {
   return (
-    <Card>
+    <Card className="hover:shadow-lg transition-shadow duration-200">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium">{title}</CardTitle>
-        {Icon && <Icon className="h-4 w-4 text-muted-foreground" />}
+        <CardTitle className="text-sm font-medium text-gray-600">{title}</CardTitle>
+        {Icon && (
+          <div className={`p-2 rounded-full ${
+            trend === 'up' ? 'bg-green-100' :
+            trend === 'down' ? 'bg-red-100' :
+            'bg-blue-100'
+          }`}>
+            <Icon className={`h-4 w-4 ${
+              trend === 'up' ? 'text-green-600' :
+              trend === 'down' ? 'text-red-600' :
+              'text-blue-600'
+            }`} />
+          </div>
+        )}
       </CardHeader>
       <CardContent>
-        <div className="flex items-center gap-2">
-          <div className="text-2xl font-bold">{value}</div>
+        <div className="flex items-baseline gap-2">
+          <div className="text-2xl font-bold text-gray-900">{value}</div>
           {trend && (
             trend === 'up' ? (
-              <TrendingUp className="h-4 w-4 text-green-500" />
+              <TrendingUp className="h-5 w-5 text-green-500" />
             ) : (
-              <TrendingDown className="h-4 w-4 text-red-500" />
+              <TrendingDown className="h-5 w-5 text-red-500" />
             )
           )}
         </div>
         {max && (
-          <Progress value={(parseFloat(value) / max) * 100} className="mt-2 h-2" />
+          <div className="mt-3">
+            <Progress
+              value={(parseFloat(value) / max) * 100}
+              className="h-2"
+            />
+          </div>
         )}
         {subtitle && (
-          <p className="text-xs text-muted-foreground mt-2">{subtitle}</p>
+          <p className="text-xs text-muted-foreground mt-3">{subtitle}</p>
         )}
       </CardContent>
     </Card>
@@ -530,15 +671,23 @@ function prepareOutcomeDistribution(scenarios: any[]) {
     }];
   }
 
-  const binCount = Math.min(20, values.length);
+  const binCount = Math.min(10, values.length); // Reduced bins to avoid overlap
   const binSize = (max - min) / binCount;
 
-  const bins = Array(binCount).fill(0).map((_, i) => ({
-    min: min + i * binSize,
-    max: min + (i + 1) * binSize,
-    count: 0,
-    range: `${Math.round((min + i * binSize) / 1000)}k-${Math.round((min + (i + 1) * binSize) / 1000)}k`
-  }));
+  const bins = Array(binCount).fill(0).map((_, i) => {
+    const binMin = min + i * binSize;
+    const binMax = min + (i + 1) * binSize;
+    return {
+      min: binMin,
+      max: binMax,
+      count: 0,
+      range: binMin < 0 && binMax > 0
+        ? '$0'
+        : binMin < 0
+        ? `-$${Math.abs(Math.round(binMin / 1000))}k`
+        : `$${Math.round(binMin / 1000)}k`
+    };
+  });
 
   // Count values in each bin
   values.forEach(value => {

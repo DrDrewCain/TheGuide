@@ -4,13 +4,16 @@ import { useState } from 'react';
 import { DecisionType, Decision, DecisionOption, UserProfile } from '@theguide/models';
 import { useSimulation } from '@/hooks/useSimulation';
 import SimulationResults from '@/components/simulation/SimulationResults';
+import DecisionPresets, { type DecisionPreset } from '@/components/DecisionPresets';
 
 export default function DashboardPage() {
+  const [showPresets, setShowPresets] = useState(true);
   const [selectedDecisionType, setSelectedDecisionType] = useState<DecisionType | ''>('');
   const [showResults, setShowResults] = useState(false);
   const [currentDecision, setCurrentDecision] = useState<Decision | null>(null);
   const [selectedOption, setSelectedOption] = useState<DecisionOption | null>(null);
   const [userProfile, setUserProfile] = useState<Partial<UserProfile>>({});
+  const [prefilledData, setPrefilledData] = useState<any>({});
 
   const simulation = useSimulation({
     onComplete: () => setShowResults(true),
@@ -48,23 +51,50 @@ export default function DashboardPage() {
     }
   ];
 
+  const handlePresetSelection = (preset: DecisionPreset) => {
+    setSelectedDecisionType(preset.type as DecisionType);
+    setPrefilledData(preset.defaultValues);
+    setShowPresets(false);
+  };
+
+  const handleSkipPresets = () => {
+    setShowPresets(false);
+  };
+
   return (
     <main className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">Life Decision Simulator</h1>
-
         {showResults && simulation.result ? (
-          <SimulationResults
-            result={simulation.result}
-            quickEstimate={simulation.quickEstimate}
-            sensitivity={simulation.sensitivity}
-            onBack={() => {
-              setShowResults(false);
-              simulation.reset();
-            }}
-          />
+          <>
+            <h1 className="text-3xl font-bold text-gray-900 mb-8">Your Simulation Results</h1>
+            <SimulationResults
+              result={simulation.result}
+              quickEstimate={simulation.quickEstimate}
+              sensitivity={simulation.sensitivity}
+              onBack={() => {
+                setShowResults(false);
+                setShowPresets(true);
+                simulation.reset();
+                setSelectedDecisionType('');
+                setPrefilledData({});
+              }}
+            />
+          </>
+        ) : showPresets ? (
+          <>
+            <h1 className="text-5xl font-bold text-center mb-4">Life Decision Simulator</h1>
+            <p className="text-xl text-gray-600 text-center mb-12">
+              Simulate major life decisions with AI-powered Monte Carlo analysis
+            </p>
+            <DecisionPresets
+              onSelectPreset={handlePresetSelection}
+              onSkip={handleSkipPresets}
+            />
+          </>
         ) : (
           <>
+            <h1 className="text-3xl font-bold text-gray-900 mb-8">Life Decision Simulator</h1>
+
             <div className="bg-white rounded-lg shadow-md p-6 mb-8">
               <h2 className="text-xl font-semibold mb-4">What decision are you facing?</h2>
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -82,6 +112,13 @@ export default function DashboardPage() {
                   </button>
                 ))}
               </div>
+
+              <button
+                onClick={() => setShowPresets(true)}
+                className="mt-6 text-sm text-blue-600 hover:text-blue-700"
+              >
+                ← Back to preset scenarios
+              </button>
             </div>
 
             {selectedDecisionType && (
@@ -90,6 +127,7 @@ export default function DashboardPage() {
                 <DecisionForm
                   decisionType={selectedDecisionType}
                   simulation={simulation}
+                  prefilledData={prefilledData}
                   onDecisionReady={(decision, option, profile) => {
                     setCurrentDecision(decision);
                     setSelectedOption(option);

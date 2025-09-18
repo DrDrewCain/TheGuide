@@ -208,41 +208,69 @@ export class SimulationEngine {
       income = option.parameters.newSalary as number;
     }
 
-    // Apply wage growth (not triple-counting)
+    // Apply wage growth with randomness
     const wageInflation = economicConditions.inflationRate / 100;
-    const careerGrowthRate = this.calculateCareerGrowthRate(userProfile, economicConditions);
+    const baseCareerGrowth = this.calculateCareerGrowthRate(userProfile, economicConditions);
+
+    // Add random variation to growth rate (-2% to +2%)
+    const growthVariation = (rng.uniform(0, 1) - 0.5) * 0.04;
+    const careerGrowthRate = baseCareerGrowth + growthVariation;
     const totalGrowthRate = wageInflation + careerGrowthRate;
 
     income = income * Math.pow(1 + totalGrowthRate, year);
 
-    // Calculate expenses with inflation
+    // Calculate expenses with inflation and random variation
     const monthlyExpenses = this.getMonthlyExpenses(userProfile);
-    const expenses = monthlyExpenses * 12 * Math.pow(1 + economicConditions.inflationRate / 100, year);
+    const expenseVariation = 1 + (rng.uniform(0, 1) - 0.5) * 0.2; // +/- 10% variation
+    const expenses = monthlyExpenses * 12 * expenseVariation * Math.pow(1 + economicConditions.inflationRate / 100, year);
+
+    // Add unexpected expenses occasionally (20% chance per year)
+    const unexpectedExpenses = rng.uniform(0, 1) < 0.2 ? income * rng.uniform(0.05, 0.15) : 0;
+    const totalExpenses = expenses + unexpectedExpenses;
 
     // Savings calculation
-    const savings = income - expenses;
+    const savings = income - totalExpenses;
 
     // Investment returns on investable assets only
     const investableAssets = previousFinancials.netWorth - (userProfile.financial.assets.cash || 20000);
-    const investmentReturn = this.calculateInvestmentReturn(economicConditions, rng);
+    const baseReturn = this.calculateInvestmentReturn(economicConditions, rng);
+
+    // Add market volatility
+    const volatilityMultiplier = 1 + (rng.uniform(0, 1) - 0.5) * 0.3; // +/- 15% volatility
+    const investmentReturn = baseReturn * volatilityMultiplier;
     const investmentGains = Math.max(0, investableAssets) * investmentReturn;
 
-    const netWorth = previousFinancials.netWorth + savings + investmentGains;
+    // Bonus income (10% chance)
+    const bonusIncome = rng.uniform(0, 1) < 0.1 ? income * rng.uniform(0.1, 0.3) : 0;
 
-    // Career progression
+    const netWorth = previousFinancials.netWorth + savings + investmentGains + bonusIncome;
+
+    // Career progression with random events
     const experience = userProfile.career.yearsExperience + year;
-    const seniorityLevel = Math.min(10, Math.floor(experience / 3));
-    const marketValue = income * rng.uniform(1.05, 1.15);
+
+    // Random promotion chance (15% per year after year 2)
+    const promotionBonus = year > 2 && rng.uniform(0, 1) < 0.15 ? 1 : 0;
+    const seniorityLevel = Math.min(10, Math.floor(experience / 3) + promotionBonus);
+
+    // Market value varies more widely
+    const marketValue = income * rng.uniform(0.9, 1.25);
 
     // Extract impact values safely
     const impactValues = this.extractImpactValues(option);
-    const jobSatisfaction = this.calculateJobSatisfaction(decision, impactValues, year, rng);
+    const baseJobSatisfaction = this.calculateJobSatisfaction(decision, impactValues, year, rng);
+    const jobSatisfaction = Math.max(1, Math.min(10, baseJobSatisfaction + (rng.uniform(0, 1) - 0.5) * 2));
 
-    // Life metrics
-    const stress = this.calculateStress(decision, impactValues, economicConditions, year, rng);
-    const workLifeBalance = this.calculateWorkLifeBalance(decision, impactValues, year, rng);
-    const overallHappiness = (jobSatisfaction + workLifeBalance + (10 - stress)) / 3;
-    const healthScore = Math.max(1, Math.min(10, 10 - (stress * 0.2)));
+    // Life metrics with more variation
+    const baseStress = this.calculateStress(decision, impactValues, economicConditions, year, rng);
+    const stress = Math.max(1, Math.min(10, baseStress + (rng.uniform(0, 1) - 0.5) * 2));
+
+    const baseBalance = this.calculateWorkLifeBalance(decision, impactValues, year, rng);
+    const workLifeBalance = Math.max(1, Math.min(10, baseBalance + (rng.uniform(0, 1) - 0.5) * 1.5));
+
+    // Life events affect happiness (20% chance)
+    const lifeEventImpact = rng.uniform(0, 1) < 0.2 ? (rng.uniform(0, 1) - 0.5) * 3 : 0;
+    const overallHappiness = Math.max(1, Math.min(10, (jobSatisfaction + workLifeBalance + (10 - stress)) / 3 + lifeEventImpact));
+    const healthScore = Math.max(1, Math.min(10, 10 - (stress * 0.2) + (rng.uniform(0, 1) - 0.5)));
 
     return {
       year,
