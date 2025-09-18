@@ -56,16 +56,8 @@ export class SensitivityAnalyzer {
     // Skip bootstrap for now to avoid infinite recursion
     // Bootstrap would re-run the entire sensitivity analysis
     const confidence: ConfidenceIntervals = {
-      firstOrderCI: firstOrder.map(v => ({
-        lower: v * 0.9,
-        upper: v * 1.1,
-        mean: v
-      })),
-      totalOrderCI: totalOrder.map(v => ({
-        lower: v * 0.9,
-        upper: v * 1.1,
-        mean: v
-      }))
+      firstOrderCI: firstOrder.map(v => [v * 0.9, v * 1.1] as [number, number]),
+      totalOrderCI: totalOrder.map(v => [v * 0.9, v * 1.1] as [number, number])
     };
 
     console.log('Sensitivity analysis complete');

@@ -152,7 +152,13 @@ export class DataEnrichmentService {
     // This would call an AI service to infer missing data points
     // based on correlations and patterns
 
-    const inferences = {
+    const inferences: {
+      estimatedSalaryRange: any;
+      likelyIndustry: any;
+      careerStage: string | null;
+      riskTolerance: any;
+      familyStatus: any;
+    } = {
       estimatedSalaryRange: null,
       likelyIndustry: null,
       careerStage: null,

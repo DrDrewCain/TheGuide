@@ -21,6 +21,10 @@ const envSchema = z.object({
   // CORS
   CORS_ORIGINS: z.string().default('http://localhost:3000'),
 
+  // JWT
+  JWT_SECRET: z.string().default('your-secret-key-here'),
+  JWT_EXPIRES_IN: z.string().default('7d'),
+
   // External APIs (optional for now)
   PLAID_CLIENT_ID: z.string().optional(),
   PLAID_SECRET: z.string().optional(),

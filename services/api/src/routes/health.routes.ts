@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { supabase } from '../config/supabase.js';
-import { redis } from '../data/redis.js';
+import { redisClient } from '../data/redis.js';
 
 export const healthRouter = Router();
 
@@ -32,7 +32,7 @@ healthRouter.get('/detailed', async (req, res) => {
 
   // Check Redis connection
   try {
-    await redis.ping();
+    await redisClient.ping();
     checks.redis = 'ok';
   } catch (error) {
     checks.redis = 'error';
