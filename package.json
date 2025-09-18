@@ -2,6 +2,7 @@
   "name": "theguide",
   "version": "1.0.0",
   "private": true,
+  "packageManager": "bun@1.1.0",
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev --parallel",
