@@ -1,0 +1,303 @@
+openapi: 3.0.3
+info:
+  title: TheGuide API
+  description: AI-powered life decision simulator API
+  version: 1.0.0
+servers:
+  - url: https://api.theguide.app
+    description: Production
+  - url: http://localhost:3000
+    description: Development
+
+paths:
+  /users/profile:
+    get:
+      summary: Get user profile
+      tags: [Users]
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: User profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+
+  /decisions:
+    get:
+      summary: List all decisions
+      tags: [Decisions]
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: List of decisions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Decision'
+
+    post:
+      summary: Create new decision
+      tags: [Decisions]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DecisionCreate'
+      responses:
+        201:
+          description: Created decision
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Decision'
+
+  /simulations/run:
+    post:
+      summary: Run simulation for decision option
+      tags: [Simulations]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - decisionId
+                - optionId
+              properties:
+                decisionId:
+                  type: string
+                optionId:
+                  type: string
+      responses:
+        200:
+          description: Simulation result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SimulationResult'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    UserProfile:
+      type: object
+      required:
+        - id
+        - email
+        - demographics
+        - career
+        - financial
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        demographics:
+          type: object
+          properties:
+            age:
+              type: integer
+            location:
+              $ref: '#/components/schemas/Location'
+        career:
+          type: object
+          properties:
+            currentRole:
+              type: string
+            industry:
+              type: string
+            yearsExperience:
+              type: integer
+            salary:
+              type: number
+        financial:
+          type: object
+          properties:
+            assets:
+              type: object
+              additionalProperties:
+                type: number
+            liabilities:
+              type: object
+              additionalProperties:
+                type: number
+
+    Location:
+      type: object
+      required:
+        - city
+        - state
+        - country
+      properties:
+        city:
+          type: string
+        state:
+          type: string
+        country:
+          type: string
+        zipCode:
+          type: string
+
+    Decision:
+      type: object
+      required:
+        - id
+        - userId
+        - type
+        - title
+        - status
+      properties:
+        id:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum:
+            - career_change
+            - job_offer
+            - relocation
+            - education
+            - home_purchase
+            - investment
+            - family_planning
+            - retirement
+            - business_startup
+        title:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+          enum:
+            - draft
+            - analyzing
+            - simulated
+            - decided
+            - implemented
+            - archived
+        options:
+          type: array
+          items:
+            $ref: '#/components/schemas/DecisionOption'
+
+    DecisionOption:
+      type: object
+      required:
+        - id
+        - title
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+        pros:
+          type: array
+          items:
+            type: string
+        cons:
+          type: array
+          items:
+            type: string
+
+    DecisionCreate:
+      type: object
+      required:
+        - type
+        - title
+      properties:
+        type:
+          type: string
+          enum:
+            - career_change
+            - job_offer
+            - relocation
+            - education
+            - home_purchase
+        title:
+          type: string
+        description:
+          type: string
+        options:
+          type: array
+          items:
+            type: object
+            properties:
+              title:
+                type: string
+              description:
+                type: string
+
+    SimulationResult:
+      type: object
+      required:
+        - id
+        - decisionId
+        - optionId
+        - runDate
+      properties:
+        id:
+          type: string
+          format: uuid
+        decisionId:
+          type: string
+          format: uuid
+        optionId:
+          type: string
+          format: uuid
+        runDate:
+          type: string
+          format: date-time
+        aggregateMetrics:
+          type: object
+          properties:
+            expectedValue:
+              type: object
+              properties:
+                financial:
+                  type: number
+                career:
+                  type: number
+                lifestyle:
+                  type: number
+            probabilityOfSuccess:
+              type: number
+            riskScore:
+              type: number
+        recommendations:
+          type: array
+          items:
+            type: object
+            properties:
+              priority:
+                type: string
+                enum: [high, medium, low]
+              title:
+                type: string
+              actions:
+                type: array
+                items:
+                  type: string

@@ -1,0 +1,24 @@
+# Default owners for everything
+* @DrDrewCain
+
+# Frontend
+/apps/web/ @DrDrewCain
+/packages/ui/ @DrDrewCain
+/packages/charts/ @DrDrewCain
+
+# iOS
+/apps/ios/ @DrDrewCain
+/ios-packages/ @DrDrewCain
+
+# Backend Services
+/services/api/ @DrDrewCain
+/services/sim-engine/ @DrDrewCain
+/services/market-proxy/ @DrDrewCain
+
+# Infrastructure
+/infra/ @DrDrewCain
+/ops/ @DrDrewCain
+
+# Documentation
+/docs/ @DrDrewCain
+*.md @DrDrewCain

@@ -1,0 +1,27 @@
+{
+  "name": "theguide",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev --parallel",
+    "dev:web": "turbo run dev --filter=@theguide/web",
+    "dev:api": "turbo run dev --filter=@theguide/api",
+    "dev:services": "turbo run dev --filter=@theguide/api --filter=@theguide/sim-engine --filter=@theguide/market-proxy",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "clean": "turbo run clean && rm -rf node_modules",
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "generate:sdk": "turbo run generate --filter=@theguide/sdk",
+    "ios": "cd apps/ios && open TheGuide.xcodeproj"
+  },
+  "devDependencies": {
+    "prettier": "^3.0.0",
+    "turbo": "latest"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "packageManager": "pnpm@8.15.0"
+}

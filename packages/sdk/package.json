@@ -1,0 +1,18 @@
+{
+  "name": "@theguide/sdk",
+  "version": "1.0.0",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "license": "MIT",
+  "scripts": {
+    "generate": "openapi-typescript ../services/api/schemas/openapi.yaml -o ./src/generated/api.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@theguide/models": "workspace:*"
+  },
+  "devDependencies": {
+    "openapi-typescript": "^6.7.0",
+    "typescript": "^5.0.0"
+  }
+}
