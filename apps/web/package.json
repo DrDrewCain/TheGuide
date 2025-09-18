@@ -10,8 +10,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@theguide/api-client": "workspace:*",
     "@theguide/models": "workspace:*",
+    "@theguide/sdk": "workspace:*",
     "@theguide/ui": "workspace:*",
     "@theguide/utils": "workspace:*",
     "next": "14.2.5",

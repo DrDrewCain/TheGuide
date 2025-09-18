@@ -1,0 +1,7 @@
+[install]
+# Enable auto-install of peer dependencies
+auto = "auto"
+
+[install.scopes]
+# Configure workspace behavior
+"@theguide" = { path = "./packages" }
