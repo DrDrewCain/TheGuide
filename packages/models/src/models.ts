@@ -139,14 +139,18 @@ export interface Decision {
 }
 
 export type DecisionType =
+  | 'career'
   | 'career_change'
   | 'job_offer'
   | 'relocation'
   | 'education'
+  | 'housing'
   | 'home_purchase'
   | 'investment'
+  | 'family'
   | 'family_planning'
   | 'retirement'
+  | 'business'
   | 'business_startup';
 
 export interface DecisionOption {

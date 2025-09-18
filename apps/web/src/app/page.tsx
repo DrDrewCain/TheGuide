@@ -1,6 +1,83 @@
-import Link from 'next/link'
+'use client';
+
+import Link from 'next/link';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { Loader2 } from 'lucide-react';
 
 export default function HomePage() {
+  const [showLogin, setShowLogin] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    // Simple demo auth - accept any email/password
+    if (email && password) {
+      localStorage.setItem('user', JSON.stringify({ id: 'demo-user', email }));
+      router.push('/dashboard');
+    }
+
+    setIsLoading(false);
+  };
+
+  if (showLogin) {
+    return (
+      <main className="min-h-screen bg-gradient-to-br from-primary-50 to-primary-100 flex items-center justify-center p-4">
+        <div className="w-full max-w-md bg-white rounded-lg shadow-xl p-8">
+          <h2 className="text-2xl font-bold text-center mb-6">Sign In</h2>
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                required
+              />
+            </div>
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Signing in...
+                </>
+              ) : (
+                'Sign In'
+              )}
+            </Button>
+            <p className="text-center text-sm text-gray-600">
+              Demo: Use any email and password
+            </p>
+            <button
+              type="button"
+              onClick={() => setShowLogin(false)}
+              className="w-full text-sm text-gray-600 hover:text-gray-800"
+            >
+              Back to home
+            </button>
+          </form>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main className="min-h-screen bg-gradient-to-br from-primary-50 to-primary-100">
       <div className="container mx-auto px-4 py-16">
@@ -39,9 +116,12 @@ export default function HomePage() {
           </div>
 
           <div className="flex gap-4">
-            <Link href="/dashboard" className="bg-primary-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-primary-700 transition">
+            <button
+              onClick={() => setShowLogin(true)}
+              className="bg-primary-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-primary-700 transition"
+            >
               Start Free Analysis
-            </Link>
+            </button>
             <Link href="/how-it-works" className="bg-white text-primary-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-50 transition border border-primary-200">
               How It Works
             </Link>
