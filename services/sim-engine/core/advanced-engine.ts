@@ -47,7 +47,8 @@ export class AdvancedSimulationEngine {
     decision: Decision,
     option: DecisionOption,
     userProfile: Partial<UserProfile>,
-    config: SimulationConfig = {}
+    config: SimulationConfig = {},
+    progressCallback?: (progress: { step: string; percentage: number }) => void
   ): Promise<AdvancedSimulationResult> {
     console.log('=== Starting Advanced Simulation ===');
     console.log('Decision:', decision.type);
@@ -73,6 +74,7 @@ export class AdvancedSimulationEngine {
     if (finalConfig.runSensitivity) {
       console.log('Step 1: Running sensitivity analysis...');
       console.log('Samples:', finalConfig.sensitivitySamples);
+      progressCallback?.({ step: 'Running sensitivity analysis', percentage: 10 });
       sensitivityResult = await this.runSensitivityAnalysis(
         decision,
         option,
@@ -80,17 +82,20 @@ export class AdvancedSimulationEngine {
         finalConfig.sensitivitySamples
       );
       console.log('Sensitivity analysis complete');
+      progressCallback?.({ step: 'Sensitivity analysis complete', percentage: 25 });
     } else {
       console.log('Step 1: Skipping sensitivity analysis (disabled)');
     }
 
     // Step 2: Generate scenarios using appropriate method
     console.log('Step 2: Generating scenarios...');
+    progressCallback?.({ step: 'Generating scenarios', percentage: finalConfig.runSensitivity ? 30 : 10 });
     let scenarios: Scenario[];
     let generationMetadata: any = {};
 
     if (finalConfig.useMLMC && this.isPathDependent(decision.type)) {
       console.log('Using MLMC for path-dependent decision');
+      progressCallback?.({ step: 'Running Multi-Level Monte Carlo', percentage: 40 });
       // Use MLMC for path-dependent decisions
       const mlmcResult = await this.runMLMCSimulation(
         decision,
@@ -102,6 +107,7 @@ export class AdvancedSimulationEngine {
       generationMetadata = mlmcResult.metadata;
     } else if (finalConfig.useQMC) {
       console.log('Using QMC simulation with', finalConfig.targetScenarios, 'samples');
+      progressCallback?.({ step: 'Running Quasi-Monte Carlo simulation', percentage: 40 });
       // Use QMC for better convergence
       scenarios = await this.runQMCSimulation(
         decision,
@@ -111,6 +117,7 @@ export class AdvancedSimulationEngine {
       );
     } else {
       console.log('Using standard simulation');
+      progressCallback?.({ step: 'Running standard simulation', percentage: 40 });
       // Fallback to standard simulation
       const result = await this.baseEngine.runSimulation(
         decision,
@@ -120,13 +127,16 @@ export class AdvancedSimulationEngine {
       scenarios = result.scenarios;
     }
     console.log('Generated', scenarios.length, 'scenarios');
+    progressCallback?.({ step: 'Scenarios generated', percentage: 60 });
 
     // Step 3: Apply copulas for realistic dependencies
     if (finalConfig.useCopulas) {
+      progressCallback?.({ step: 'Applying dependency structures', percentage: 70 });
       scenarios = await this.applyCopulaDependence(scenarios, userProfile);
     }
 
     // Step 4: Reduce scenarios while preserving distribution
+    progressCallback?.({ step: 'Optimizing scenario set', percentage: 75 });
     let reducedScenarios = scenarios;
     let reductionMetadata = null;
 
@@ -144,6 +154,7 @@ export class AdvancedSimulationEngine {
     }
 
     // Step 5: Calculate final metrics from our scenarios
+    progressCallback?.({ step: 'Calculating metrics', percentage: 85 });
     const aggregatedMetrics = this.aggregateScenarios(reducedScenarios);
     const recommendations = this.generateRecommendations(reducedScenarios, decision, option);
     const risks = this.identifyRisks(reducedScenarios, decision);
@@ -177,6 +188,7 @@ export class AdvancedSimulationEngine {
       }
     };
 
+    progressCallback?.({ step: 'Simulation complete', percentage: 100 });
     return advancedResult;
   }
 
@@ -825,8 +837,8 @@ export class AdvancedSimulationEngine {
     const downsideProbability = negativeOutcomes.length / scenarios.length;
     const avgDownside = negativeOutcomes.length > 0
       ? negativeOutcomes.reduce((sum, s) =>
-          sum + s.outcomes.year10.financialPosition.netWorth, 0
-        ) / negativeOutcomes.length
+        sum + s.outcomes.year10.financialPosition.netWorth, 0
+      ) / negativeOutcomes.length
       : 0;
 
     // Risk score from 0-10
@@ -845,8 +857,8 @@ export class AdvancedSimulationEngine {
     const upsideProbability = positiveOutcomes.length / scenarios.length;
     const avgUpside = positiveOutcomes.length > 0
       ? positiveOutcomes.reduce((sum, s) =>
-          sum + s.outcomes.year10.financialPosition.netWorth, 0
-        ) / positiveOutcomes.length
+        sum + s.outcomes.year10.financialPosition.netWorth, 0
+      ) / positiveOutcomes.length
       : 0;
 
     // Opportunity score from 0-10

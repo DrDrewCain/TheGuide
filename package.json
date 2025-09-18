@@ -5,6 +5,7 @@
   "packageManager": "bun@1.1.0",
   "scripts": {
     "build": "turbo run build",
+    "build:web": "turbo run build --filter=@theguide/web",
     "dev": "turbo run dev --parallel",
     "dev:web": "turbo run dev --filter=@theguide/web",
     "dev:api": "turbo run dev --filter=@theguide/api",

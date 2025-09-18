@@ -51,15 +51,18 @@ export function useSimulation(options?: UseSimulationOptions) {
         option,
         userProfile,
         options?.config,
-        (progress) => setProgress(progress)
+        (progress) => {
+          console.log('🎯 Setting progress in hook:', progress);
+          setProgress(progress);
+        }
       );
 
       setResult(result);
       options?.onComplete?.(result);
 
       // Extract sensitivity if available
-      if (result.metadata?.sensitivityAnalysis) {
-        setSensitivity(result.metadata.sensitivityAnalysis);
+      if ((result as any).metadata?.sensitivityAnalysis) {
+        setSensitivity((result as any).metadata.sensitivityAnalysis);
       }
 
       return result;

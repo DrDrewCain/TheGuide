@@ -12,7 +12,6 @@ import {
 } from '@theguide/models';
 
 // Import simulation engines
-// @ts-ignore - Package exists but TypeScript doesn't see it
 import { AdvancedSimulationEngine } from '@theguide/sim-engine';
 
 export interface SimulationConfig {
@@ -63,9 +62,6 @@ export class SimulationService {
       // Map config to engine settings
       const engineConfig = this.mapToEngineConfig(config);
 
-      // Add progress callbacks
-      const progressWrapper = this.createProgressWrapper(onProgress);
-
       // Add a small delay to ensure loading state is visible
       await new Promise(resolve => setTimeout(resolve, 500));
 
@@ -75,54 +71,26 @@ export class SimulationService {
         message: 'Generating Monte Carlo scenarios...'
       });
 
-      // For now, let's return a mock result to test the loading state
-      // TODO: Fix the actual engine import
-      console.log('⚠️ Using mock simulation result for testing');
+      // Run simulation with progress callback
+      this.currentSimulation = this.engine.runAdvancedSimulation(
+        decision,
+        option,
+        userProfile,
+        engineConfig,
+        (progress) => {
+          console.log('📊 Progress from engine:', progress);
+          // Use setTimeout to escape the current execution context
+          setTimeout(() => {
+            onProgress?.({
+              stage: 'generating',
+              percentage: progress.percentage,
+              message: progress.step
+            });
+          }, 0);
+        }
+      );
 
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
-      onProgress?.({
-        stage: 'analyzing',
-        percentage: 80,
-        message: 'Analyzing results...'
-      });
-
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // Return a mock result for testing
-      const mockResult: SimulationResult = {
-        id: `sim-${Date.now()}`,
-        decisionId: decision.id,
-        optionId: option.id,
-        runDate: new Date(),
-        scenarios: [],
-        aggregateMetrics: {
-          expectedValue: {
-            financial: 150000,
-            career: 7.5,
-            lifestyle: 8.0,
-            overall: 7.8
-          },
-          volatility: {
-            financial: 0.15,
-            career: 0.1,
-            lifestyle: 0.05
-          },
-          confidenceInterval: {
-            lower: 120000,
-            upper: 180000,
-            confidence: 0.95
-          },
-          riskScore: 0.3,
-          probabilityOfSuccess: 0.75,
-          opportunityScore: 0.8
-        },
-        recommendations: [],
-        risks: [],
-        opportunities: []
-      };
-
-      this.currentSimulation = Promise.resolve(mockResult);
+      const result = await this.currentSimulation;
 
       onProgress?.({
         stage: 'complete',
@@ -130,21 +98,7 @@ export class SimulationService {
         message: 'Simulation complete!'
       });
 
-      return mockResult;
-
-      // TODO: Restore actual simulation engine when import is fixed
-      /*
-      // Run simulation
-      this.currentSimulation = this.engine.runAdvancedSimulation(
-        decision,
-        option,
-        userProfile,
-        engineConfig
-      );
-
-      const result = await this.currentSimulation;
       return result;
-      */
     } catch (error) {
       console.error('Simulation failed:', error);
       console.error('Error details:', {
@@ -307,33 +261,6 @@ export class SimulationService {
     }
   }
 
-  private createProgressWrapper(
-    onProgress?: (progress: SimulationProgress) => void
-  ): (stage: string, percentage: number) => void {
-    return (stage: string, percentage: number) => {
-      if (!onProgress) return;
-
-      const stageMap: Record<string, SimulationProgress['stage']> = {
-        'sensitivity': 'sensitivity',
-        'generation': 'generating',
-        'reduction': 'reducing',
-        'analysis': 'analyzing'
-      };
-
-      const messageMap: Record<string, string> = {
-        'sensitivity': 'Analyzing parameter importance...',
-        'generation': 'Generating future scenarios...',
-        'reduction': 'Optimizing scenarios for analysis...',
-        'analysis': 'Computing final results...'
-      };
-
-      onProgress({
-        stage: stageMap[stage] || 'generating',
-        percentage,
-        message: messageMap[stage] || 'Processing...'
-      });
-    };
-  }
 
   private getRequiredFields(decisionType: DecisionType): string[] {
     const common = [

@@ -12,8 +12,7 @@ export default function DashboardPage() {
   const [showPresets, setShowPresets] = useState(true);
   const [selectedDecisionType, setSelectedDecisionType] = useState<DecisionType | ''>('');
   const [showResults, setShowResults] = useState(false);
-  const [currentDecision, setCurrentDecision] = useState<Decision | null>(null);
-  const [selectedOption, setSelectedOption] = useState<DecisionOption | null>(null);
+  // Remove unused state variables
   const [userProfile, setUserProfile] = useState<Partial<UserProfile>>({});
   const [prefilledData, setPrefilledData] = useState<any>({});
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
@@ -263,9 +262,10 @@ export default function DashboardPage() {
   };
 
   // Show loading overlay when simulation is running
+  console.log('🎨 Dashboard render - isRunning:', simulation.isRunning, 'hasResult:', !!simulation.result, 'progress:', simulation.progress);
   if (simulation.isRunning && !simulation.result) {
     return (
-      <main className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center p-4">
+      <main className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center p-4" key={`loading-${simulation.progress?.percentage || 0}`}>
         <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full">
           <div className="text-center space-y-6">
             <div className="relative">
@@ -292,11 +292,11 @@ export default function DashboardPage() {
                 <div className="bg-gray-200 rounded-full h-3 overflow-hidden">
                   <div
                     className="bg-gradient-to-r from-blue-500 to-purple-600 h-full transition-all duration-500 ease-out"
-                    style={{ width: `${simulation.progress.percentage}%` }}
+                    style={{ width: `${simulation.progress?.percentage || 0}%` }}
                   />
                 </div>
                 <p className="text-sm font-medium text-gray-700">
-                  {simulation.progress.percentage}% complete
+                  {simulation.progress?.percentage || 0}% complete
                 </p>
               </div>
             )}
@@ -407,7 +407,7 @@ export default function DashboardPage() {
               </button>
             </div>
 
-            {selectedDecisionType === 'custom' ? (
+            {selectedDecisionType === '' ? (
               <CustomDecisionForm
                 onAnalysis={(analysis) => {
                   // Convert AI analysis to decision and run simulation
@@ -418,7 +418,13 @@ export default function DashboardPage() {
                     title: analysis.title,
                     description: analysis.description,
                     status: 'draft' as const,
-                    updatedAt: new Date().toISOString()
+                    options: [],
+                    constraints: [],
+                    timeline: {
+                      createdAt: new Date(),
+                      decisionDeadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
+                      implementationDate: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000) // 60 days
+                    }
                   };
 
                   const option: DecisionOption = {
@@ -437,8 +443,6 @@ export default function DashboardPage() {
                     requirements: []
                   };
 
-                  setCurrentDecision(decision);
-                  setSelectedOption(option);
                   simulation.runSimulation(decision, option, userProfile);
                 }}
                 onBack={() => setSelectedDecisionType('')}
@@ -451,8 +455,7 @@ export default function DashboardPage() {
                   simulation={simulation}
                   prefilledData={prefilledData}
                   onDecisionReady={(decision, option, profile) => {
-                    setCurrentDecision(decision);
-                    setSelectedOption(option);
+                    // Decision and option will be used for simulation
                     setUserProfile(profile);
                   }}
                 />
@@ -601,7 +604,7 @@ function DecisionForm({ decisionType, simulation, prefilledData, onDecisionReady
   };
 
   const markTouched = (field: string) => {
-    setTouched(new Set([...touched, field]));
+    setTouched(new Set(Array.from(touched).concat(field)));
   };
 
   const validateForm = (): boolean => {
@@ -784,11 +787,8 @@ function DecisionForm({ decisionType, simulation, prefilledData, onDecisionReady
       timeline: {
         createdAt: new Date(),
         decisionDeadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
-        implementationDate: undefined
-      },
-      analysis: undefined,
-      finalChoice: undefined,
-      outcome: undefined
+        implementationDate: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000) // 60 days
+      }
     };
 
     // Use first valid option for simulation
@@ -921,15 +921,6 @@ function DecisionForm({ decisionType, simulation, prefilledData, onDecisionReady
               value={profile.financial?.monthlyExpenses ? Object.values(profile.financial.monthlyExpenses).reduce((sum, val) => sum + val, 0) : ''}
               onChange={(e) => {
                 const total = Number(e.target.value);
-                const expenses = profile.financial?.monthlyExpenses || {
-                  housing: 0,
-                  transportation: 0,
-                  food: 0,
-                  utilities: 0,
-                  entertainment: 0,
-                  healthcare: 0,
-                  other: 0
-                };
                 // Distribute proportionally based on typical budget
                 updateProfile('financial.monthlyExpenses', {
                   housing: Math.round(total * 0.40),
