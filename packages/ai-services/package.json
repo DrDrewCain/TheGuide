@@ -1,5 +1,5 @@
 {
-  "name": "@theguide/models",
+  "name": "@theguide/ai-services",
   "version": "1.0.0",
   "private": true,
   "type": "module",
@@ -10,18 +10,24 @@
       "types": "./src/index.ts",
       "default": "./src/index.ts"
     },
-    "./models": {
-      "types": "./src/models.ts",
-      "default": "./src/models.ts"
+    "./decision-analysis": {
+      "types": "./src/decision-analysis.ts",
+      "default": "./src/decision-analysis.ts"
     }
   },
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
     "typecheck": "tsc --noEmit",
+    "lint": "eslint src --ext .ts,.tsx",
     "clean": "rm -rf dist .turbo"
   },
+  "dependencies": {
+    "@theguide/models": "workspace:*",
+    "openai": "^4.28.0"
+  },
   "devDependencies": {
+    "@types/node": "^20.0.0",
     "typescript": "^5.0.0"
   }
 }

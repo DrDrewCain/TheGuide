@@ -12,6 +12,7 @@
   "dependencies": {
     "@theguide/models": "workspace:*",
     "@theguide/api": "workspace:*",
+    "@theguide/ai-services": "workspace:*",
     "bull": "^4.11.0",
     "redis": "^4.6.0",
     "random-js": "^2.1.0",

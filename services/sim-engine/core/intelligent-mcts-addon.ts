@@ -16,7 +16,7 @@
 import { Decision, DecisionOption, UserProfile, SimulationResult } from '@theguide/models';
 import { SimulationEngine } from './engine';
 import { AdvancedSimulationEngine } from './advanced-engine';
-import DecisionAnalysisService from '@theguide/api/services/ai/decision-analysis';
+import { DecisionAnalysisService } from '@theguide/ai-services';
 
 interface IntelligentMCTSConfig {
   // Core algorithm configuration

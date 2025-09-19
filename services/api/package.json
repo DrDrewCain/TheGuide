@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "exports": {
-    "./services/ai/decision-analysis": "./src/services/ai/decision-analysis.ts"
+    "./services/ai/*": "./src/services/ai/*.ts"
   },
   "scripts": {
     "dev": "nodemon",
@@ -14,6 +14,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@theguide/ai-services": "workspace:*",
     "@prisma/client": "^6.16.2",
     "@supabase/supabase-js": "^2.39.0",
     "@types/bcrypt": "^6.0.0",
