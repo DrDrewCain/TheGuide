@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "exports": {
-    "./services/ai/decision-analysis": "./dist/services/ai/decision-analysis.js"
+    "./services/ai/decision-analysis": "./src/services/ai/decision-analysis.ts"
   },
   "scripts": {
     "dev": "nodemon",
