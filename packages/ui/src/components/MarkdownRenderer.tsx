@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { marked } from 'marked';
-import DOMPurify from 'dompurify';
+import DOMPurify from 'isomorphic-dompurify';
 import { cn } from '../lib/utils';
 
 interface MarkdownRendererProps {
