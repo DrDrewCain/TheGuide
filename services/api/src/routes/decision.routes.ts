@@ -1,22 +1,22 @@
-import { Router } from 'express';
-import { authenticate } from '../middleware/auth.middleware.js';
-import { prisma } from '../data/database.js';
-import { createError } from '../middleware/errorHandler.js';
-import { z } from 'zod';
+import { Router } from 'express'
+import { z } from 'zod'
+import { prisma } from '../data/database.js'
+import { authenticate } from '../middleware/auth.middleware.js'
+import { createError } from '../middleware/errorHandler.js'
 
-export const decisionRouter = Router();
+export const decisionRouter = Router()
 
 // All decision routes require authentication
-decisionRouter.use(authenticate);
+decisionRouter.use(authenticate)
 
 // Get all decisions for user
 decisionRouter.get('/', async (req, res, next) => {
   try {
-    const { status, type } = req.query;
+    const { status, type } = req.query
 
     const decisions = await prisma.decision.findMany({
       where: {
-        userId: req.user!.userId,
+        userId: req.user?.userId,
         ...(status && { status: status as string }),
         ...(type && { type: type as string }),
       },
@@ -27,13 +27,13 @@ decisionRouter.get('/', async (req, res, next) => {
         },
       },
       orderBy: { createdAt: 'desc' },
-    });
+    })
 
-    res.json(decisions);
+    res.json(decisions)
   } catch (error) {
-    next(error);
+    next(error)
   }
-});
+})
 
 // Create decision schema
 const createDecisionSchema = z.object({
@@ -53,25 +53,27 @@ const createDecisionSchema = z.object({
   decisionDeadline: z.string().datetime().optional(),
   parameters: z.object({}).optional(),
   constraints: z.array(z.object({})).optional(),
-  options: z.array(
-    z.object({
-      title: z.string().min(1).max(200),
-      description: z.string().max(2000).optional(),
-      parameters: z.object({}).optional(),
-      pros: z.array(z.string()).optional(),
-      cons: z.array(z.string()).optional(),
-    })
-  ).min(2),
-});
+  options: z
+    .array(
+      z.object({
+        title: z.string().min(1).max(200),
+        description: z.string().max(2000).optional(),
+        parameters: z.object({}).optional(),
+        pros: z.array(z.string()).optional(),
+        cons: z.array(z.string()).optional(),
+      })
+    )
+    .min(2),
+})
 
 // Create new decision
 decisionRouter.post('/', async (req, res, next) => {
   try {
-    const data = createDecisionSchema.parse(req.body);
+    const data = createDecisionSchema.parse(req.body)
 
     const decision = await prisma.decision.create({
       data: {
-        userId: req.user!.userId,
+        userId: req.user?.userId,
         type: data.type,
         title: data.title,
         description: data.description,
@@ -91,13 +93,13 @@ decisionRouter.post('/', async (req, res, next) => {
       include: {
         options: true,
       },
-    });
+    })
 
-    res.status(201).json(decision);
+    res.status(201).json(decision)
   } catch (error) {
-    next(error);
+    next(error)
   }
-});
+})
 
 // Get single decision
 decisionRouter.get('/:id', async (req, res, next) => {
@@ -105,7 +107,7 @@ decisionRouter.get('/:id', async (req, res, next) => {
     const decision = await prisma.decision.findFirst({
       where: {
         id: req.params.id,
-        userId: req.user!.userId,
+        userId: req.user?.userId,
       },
       include: {
         options: {
@@ -128,41 +130,43 @@ decisionRouter.get('/:id', async (req, res, next) => {
           },
         },
       },
-    });
+    })
 
     if (!decision) {
-      return next(createError('Decision not found', 404));
+      return next(createError('Decision not found', 404))
     }
 
-    res.json(decision);
+    res.json(decision)
   } catch (error) {
-    next(error);
+    next(error)
   }
-});
+})
 
 // Update decision
 const updateDecisionSchema = z.object({
   title: z.string().min(1).max(200).optional(),
   description: z.string().max(2000).optional(),
-  status: z.enum(['draft', 'analyzing', 'simulated', 'decided', 'implemented', 'archived']).optional(),
+  status: z
+    .enum(['draft', 'analyzing', 'simulated', 'decided', 'implemented', 'archived'])
+    .optional(),
   decisionDeadline: z.string().datetime().optional(),
   implementedAt: z.string().datetime().optional(),
-});
+})
 
 decisionRouter.put('/:id', async (req, res, next) => {
   try {
-    const data = updateDecisionSchema.parse(req.body);
+    const data = updateDecisionSchema.parse(req.body)
 
     // Check ownership
     const existing = await prisma.decision.findFirst({
       where: {
         id: req.params.id,
-        userId: req.user!.userId,
+        userId: req.user?.userId,
       },
-    });
+    })
 
     if (!existing) {
-      return next(createError('Decision not found', 404));
+      return next(createError('Decision not found', 404))
     }
 
     const decision = await prisma.decision.update({
@@ -175,13 +179,13 @@ decisionRouter.put('/:id', async (req, res, next) => {
       include: {
         options: true,
       },
-    });
+    })
 
-    res.json(decision);
+    res.json(decision)
   } catch (error) {
-    next(error);
+    next(error)
   }
-});
+})
 
 // Delete decision
 decisionRouter.delete('/:id', async (req, res, next) => {
@@ -190,20 +194,20 @@ decisionRouter.delete('/:id', async (req, res, next) => {
     const existing = await prisma.decision.findFirst({
       where: {
         id: req.params.id,
-        userId: req.user!.userId,
+        userId: req.user?.userId,
       },
-    });
+    })
 
     if (!existing) {
-      return next(createError('Decision not found', 404));
+      return next(createError('Decision not found', 404))
     }
 
     await prisma.decision.delete({
       where: { id: req.params.id },
-    });
+    })
 
-    res.json({ message: 'Decision deleted successfully' });
+    res.json({ message: 'Decision deleted successfully' })
   } catch (error) {
-    next(error);
+    next(error)
   }
-});
+})

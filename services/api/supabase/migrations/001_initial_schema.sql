@@ -47,7 +47,7 @@ CREATE TABLE user_profiles (
   zip_code TEXT,
   marital_status marital_status,
   dependents INTEGER DEFAULT 0 CHECK (dependents >= 0 AND dependents <= 20),
-  current_role TEXT,
+  current_job_role TEXT,
   industry TEXT,
   company TEXT,
   years_experience INTEGER CHECK (years_experience >= 0 AND years_experience <= 60),

@@ -1,29 +1,29 @@
-import {
+import type {
+  AggregateMetrics,
   Decision,
   DecisionOption,
-  UserProfile,
-  SimulationResult,
-  Scenario,
   EconomicConditions,
-  YearlyOutcome,
-  AggregateMetrics,
   KeyEvent,
+  Opportunity,
   Recommendation,
   Risk,
-  Opportunity
-} from '@theguide/models';
-import { SeededRNG, RNG } from './rng';
-import { DataEnrichmentService } from '../src/data/data-enrichment';
-import { v4 as uuidv4 } from 'uuid';
+  Scenario,
+  SimulationResult,
+  UserProfile,
+  YearlyOutcome,
+} from '@theguide/models'
+import { v4 as uuidv4 } from 'uuid'
+import { DataEnrichmentService } from '../src/data/data-enrichment'
+import { type RNG, SeededRNG } from './rng'
 
 export class SimulationEngine {
-  private static readonly SIMULATION_COUNT = 1000;
-  private static readonly TIME_HORIZONS = [1, 3, 5, 10];
+  private static readonly SIMULATION_COUNT = 1000
+  private static readonly TIME_HORIZONS = [1, 3, 5, 10]
 
-  private dataEnrichment: DataEnrichmentService;
+  private dataEnrichment: DataEnrichmentService
 
   constructor(dataSources?: any) {
-    this.dataEnrichment = new DataEnrichmentService(dataSources || {});
+    this.dataEnrichment = new DataEnrichmentService(dataSources || {})
   }
 
   /**
@@ -36,24 +36,27 @@ export class SimulationEngine {
     seed?: string
   ): Promise<SimulationResult> {
     // Create seeded RNG for reproducibility
-    const rng = new SeededRNG(seed || `${decision.id}-${option.id}-${Date.now()}`);
+    const rng = new SeededRNG(seed || `${decision.id}-${option.id}-${Date.now()}`)
 
     // Assess data quality and enrich profile
-    const dataQuality = this.assessDataQuality(partialProfile, decision.type);
-    const userProfile = await this.enrichUserProfile(partialProfile, decision.type);
+    const dataQuality = this.assessDataQuality(partialProfile, decision.type)
+    const userProfile = await this.enrichUserProfile(partialProfile, decision.type)
 
     // Generate scenarios with adjusted iteration count based on data quality
-    const iterationCount = this.adjustIterationCount(SimulationEngine.SIMULATION_COUNT, dataQuality.completeness);
-    const scenarios = this.generateScenarios(decision, option, userProfile, rng, iterationCount);
+    const iterationCount = this.adjustIterationCount(
+      SimulationEngine.SIMULATION_COUNT,
+      dataQuality.completeness
+    )
+    const scenarios = this.generateScenarios(decision, option, userProfile, rng, iterationCount)
 
     // Normalize probabilities
-    this.normalizeScenarioProbabilities(scenarios);
+    this.normalizeScenarioProbabilities(scenarios)
 
     // Calculate weighted metrics
-    const aggregateMetrics = this.calculateAggregateMetrics(scenarios, dataQuality);
-    const recommendations = SimulationEngine.generateRecommendations(scenarios, option, userProfile);
-    const risks = SimulationEngine.identifyRisks(scenarios, option);
-    const opportunities = SimulationEngine.identifyOpportunities(scenarios, option);
+    const aggregateMetrics = this.calculateAggregateMetrics(scenarios, dataQuality)
+    const recommendations = SimulationEngine.generateRecommendations(scenarios, option, userProfile)
+    const risks = SimulationEngine.identifyRisks(scenarios, option)
+    const opportunities = SimulationEngine.identifyOpportunities(scenarios, option)
 
     return {
       id: uuidv4(),
@@ -64,8 +67,8 @@ export class SimulationEngine {
       aggregateMetrics,
       recommendations,
       risks,
-      opportunities
-    };
+      opportunities,
+    }
   }
 
   /**
@@ -78,18 +81,12 @@ export class SimulationEngine {
     rng: RNG,
     count: number
   ): Scenario[] {
-    const scenarios: Scenario[] = [];
+    const scenarios: Scenario[] = []
 
     for (let i = 0; i < count; i++) {
-      const economicConditions = this.generateEconomicConditions(rng);
-      const outcomes = this.projectOutcomes(
-        decision,
-        option,
-        userProfile,
-        economicConditions,
-        rng
-      );
-      const keyEvents = this.generateKeyEvents(economicConditions, rng);
+      const economicConditions = this.generateEconomicConditions(rng)
+      const outcomes = this.projectOutcomes(decision, option, userProfile, economicConditions, rng)
+      const keyEvents = this.generateKeyEvents(economicConditions, rng)
 
       scenarios.push({
         id: uuidv4(),
@@ -97,11 +94,11 @@ export class SimulationEngine {
         economicConditions,
         outcomes,
         keyEvents,
-        assumptions: this.getAssumptions(economicConditions)
-      });
+        assumptions: this.getAssumptions(economicConditions),
+      })
     }
 
-    return scenarios;
+    return scenarios
   }
 
   /**
@@ -109,53 +106,53 @@ export class SimulationEngine {
    */
   private generateEconomicConditions(rng: RNG): EconomicConditions {
     // Use historical distributions and correlations
-    const marketRand = rng.next();
-    let marketCondition: EconomicConditions['marketCondition'];
-    let gdpGrowth: number;
-    let inflationRate: number;
-    let unemploymentRate: number;
+    const marketRand = rng.next()
+    let marketCondition: EconomicConditions['marketCondition']
+    let gdpGrowth: number
+    let inflationRate: number
+    let unemploymentRate: number
 
     if (marketRand < 0.1) {
       // Recession (10% probability)
-      marketCondition = 'recession';
-      gdpGrowth = rng.normal(-2, 1);
-      inflationRate = rng.normal(1, 0.5);
-      unemploymentRate = rng.normal(8, 2);
+      marketCondition = 'recession'
+      gdpGrowth = rng.normal(-2, 1)
+      inflationRate = rng.normal(1, 0.5)
+      unemploymentRate = rng.normal(8, 2)
     } else if (marketRand < 0.25) {
       // Downturn (15% probability)
-      marketCondition = 'downturn';
-      gdpGrowth = rng.normal(0.5, 0.5);
-      inflationRate = rng.normal(2, 0.5);
-      unemploymentRate = rng.normal(5.5, 1);
+      marketCondition = 'downturn'
+      gdpGrowth = rng.normal(0.5, 0.5)
+      inflationRate = rng.normal(2, 0.5)
+      unemploymentRate = rng.normal(5.5, 1)
     } else if (marketRand < 0.75) {
       // Stable (50% probability)
-      marketCondition = 'stable';
-      gdpGrowth = rng.normal(2.5, 0.5);
-      inflationRate = rng.normal(2.5, 0.5);
-      unemploymentRate = rng.normal(4, 0.5);
+      marketCondition = 'stable'
+      gdpGrowth = rng.normal(2.5, 0.5)
+      inflationRate = rng.normal(2.5, 0.5)
+      unemploymentRate = rng.normal(4, 0.5)
     } else if (marketRand < 0.9) {
       // Growth (15% probability)
-      marketCondition = 'growth';
-      gdpGrowth = rng.normal(3.5, 0.5);
-      inflationRate = rng.normal(3, 0.5);
-      unemploymentRate = rng.normal(3.5, 0.5);
+      marketCondition = 'growth'
+      gdpGrowth = rng.normal(3.5, 0.5)
+      inflationRate = rng.normal(3, 0.5)
+      unemploymentRate = rng.normal(3.5, 0.5)
     } else {
       // Boom (10% probability)
-      marketCondition = 'boom';
-      gdpGrowth = rng.normal(4.5, 0.5);
-      inflationRate = rng.normal(3.5, 0.5);
-      unemploymentRate = rng.normal(3, 0.5);
+      marketCondition = 'boom'
+      gdpGrowth = rng.normal(4.5, 0.5)
+      inflationRate = rng.normal(3.5, 0.5)
+      unemploymentRate = rng.normal(3, 0.5)
     }
 
-    const industryOutlook = SimulationEngine.determineIndustryOutlook(marketCondition);
+    const industryOutlook = SimulationEngine.determineIndustryOutlook(marketCondition)
 
     return {
       gdpGrowth,
       inflationRate,
       unemploymentRate,
       marketCondition,
-      industryOutlook
-    };
+      industryOutlook,
+    }
   }
 
   /**
@@ -168,8 +165,8 @@ export class SimulationEngine {
     economicConditions: EconomicConditions,
     rng: RNG
   ): Scenario['outcomes'] {
-    const outcomes: any = {};
-    let previousFinancials = SimulationEngine.calculateBaselineFinancials(userProfile);
+    const outcomes: any = {}
+    let previousFinancials = SimulationEngine.calculateBaselineFinancials(userProfile)
 
     // Project for each time horizon
     for (const horizon of SimulationEngine.TIME_HORIZONS) {
@@ -181,12 +178,12 @@ export class SimulationEngine {
         economicConditions,
         previousFinancials,
         rng
-      );
-      outcomes[`year${horizon}`] = yearOutcome;
-      previousFinancials = yearOutcome.financialPosition;
+      )
+      outcomes[`year${horizon}`] = yearOutcome
+      previousFinancials = yearOutcome.financialPosition
     }
 
-    return outcomes;
+    return outcomes
   }
 
   /**
@@ -202,87 +199,98 @@ export class SimulationEngine {
     rng: RNG
   ): YearlyOutcome {
     // Income projection based on decision type and economic conditions
-    let income = userProfile.career.salary;
+    let income = userProfile.career.salary
 
-    if ((decision.type === 'career_change' || decision.type === 'job_offer') && option.parameters?.newSalary) {
-      income = option.parameters.newSalary as number;
+    if (
+      (decision.type === 'career_change' || decision.type === 'job_offer') &&
+      option.parameters?.newSalary
+    ) {
+      income = option.parameters.newSalary as number
     }
 
     // Apply wage growth with randomness
-    const wageInflation = economicConditions.inflationRate / 100;
-    const baseCareerGrowth = this.calculateCareerGrowthRate(userProfile, economicConditions);
+    const wageInflation = economicConditions.inflationRate / 100
+    const baseCareerGrowth = this.calculateCareerGrowthRate(userProfile, economicConditions)
 
     // Add random variation to growth rate (-2% to +2%)
-    const growthVariation = (rng.uniform(0, 1) - 0.5) * 0.04;
-    const careerGrowthRate = baseCareerGrowth + growthVariation;
-    const totalGrowthRate = wageInflation + careerGrowthRate;
+    const growthVariation = (rng.uniform(0, 1) - 0.5) * 0.04
+    const careerGrowthRate = baseCareerGrowth + growthVariation
+    const totalGrowthRate = wageInflation + careerGrowthRate
 
-    income = income * Math.pow(1 + totalGrowthRate, year);
+    income = income * (1 + totalGrowthRate) ** year
 
     // Calculate expenses with inflation and random variation
-    const monthlyExpenses = this.getMonthlyExpenses(userProfile);
-    const expenseVariation = 1 + (rng.uniform(0, 1) - 0.5) * 0.2; // +/- 10% variation
-    const expenses = monthlyExpenses * 12 * expenseVariation * Math.pow(1 + economicConditions.inflationRate / 100, year);
+    const monthlyExpenses = this.getMonthlyExpenses(userProfile)
+    const expenseVariation = 1 + (rng.uniform(0, 1) - 0.5) * 0.2 // +/- 10% variation
+    const expenses =
+      monthlyExpenses * 12 * expenseVariation * (1 + economicConditions.inflationRate / 100) ** year
 
     // Add unexpected expenses occasionally (20% chance per year)
-    const unexpectedExpenses = rng.uniform(0, 1) < 0.2 ? income * rng.uniform(0.05, 0.15) : 0;
-    const totalExpenses = expenses + unexpectedExpenses;
+    const unexpectedExpenses = rng.uniform(0, 1) < 0.2 ? income * rng.uniform(0.05, 0.15) : 0
+    const totalExpenses = expenses + unexpectedExpenses
 
     // Savings calculation
-    const savings = income - totalExpenses;
+    const savings = income - totalExpenses
 
     // Investment returns on investable assets only
-    const investableAssets = previousFinancials.netWorth - (userProfile.financial.assets.cash || 20000);
-    const baseReturn = this.calculateInvestmentReturn(economicConditions, rng);
+    const investableAssets =
+      previousFinancials.netWorth - (userProfile.financial.assets.cash || 20000)
+    const baseReturn = this.calculateInvestmentReturn(economicConditions, rng)
 
     // Add market volatility
-    const volatilityMultiplier = 1 + (rng.uniform(0, 1) - 0.5) * 0.3; // +/- 15% volatility
-    const investmentReturn = baseReturn * volatilityMultiplier;
-    const investmentGains = Math.max(0, investableAssets) * investmentReturn;
+    const volatilityMultiplier = 1 + (rng.uniform(0, 1) - 0.5) * 0.3 // +/- 15% volatility
+    const investmentReturn = baseReturn * volatilityMultiplier
+    const investmentGains = Math.max(0, investableAssets) * investmentReturn
 
     // Bonus income (10% chance)
-    const bonusIncome = rng.uniform(0, 1) < 0.1 ? income * rng.uniform(0.1, 0.3) : 0;
+    const bonusIncome = rng.uniform(0, 1) < 0.1 ? income * rng.uniform(0.1, 0.3) : 0
 
-    const netWorth = previousFinancials.netWorth + savings + investmentGains + bonusIncome;
+    const netWorth = previousFinancials.netWorth + savings + investmentGains + bonusIncome
 
     // Career progression with random events
-    const experience = userProfile.career.yearsExperience + year;
+    const experience = userProfile.career.yearsExperience + year
 
     // Random promotion chance (15% per year after year 2)
-    const promotionBonus = year > 2 && rng.uniform(0, 1) < 0.15 ? 1 : 0;
-    const seniorityLevel = Math.min(10, Math.floor(experience / 3) + promotionBonus);
+    const promotionBonus = year > 2 && rng.uniform(0, 1) < 0.15 ? 1 : 0
+    const seniorityLevel = Math.min(10, Math.floor(experience / 3) + promotionBonus)
 
     // Market value varies more widely
-    const marketValue = income * rng.uniform(0.9, 1.25);
+    const marketValue = income * rng.uniform(0.9, 1.25)
 
     // Extract impact values safely
-    const impactValues = this.extractImpactValues(option);
-    const baseJobSatisfaction = this.calculateJobSatisfaction(decision, impactValues, year, rng);
-    const jobSatisfaction = Math.max(1, Math.min(10, baseJobSatisfaction + (rng.uniform(0, 1) - 0.5) * 2));
+    const impactValues = this.extractImpactValues(option)
+    const baseJobSatisfaction = this.calculateJobSatisfaction(decision, impactValues, year, rng)
+    const jobSatisfaction = Math.max(
+      1,
+      Math.min(10, baseJobSatisfaction + (rng.uniform(0, 1) - 0.5) * 2)
+    )
 
     // Life metrics with more variation
-    const baseStress = this.calculateStress(decision, impactValues, economicConditions, year, rng);
-    const stress = Math.max(1, Math.min(10, baseStress + (rng.uniform(0, 1) - 0.5) * 2));
+    const baseStress = this.calculateStress(decision, impactValues, economicConditions, year, rng)
+    const stress = Math.max(1, Math.min(10, baseStress + (rng.uniform(0, 1) - 0.5) * 2))
 
-    const baseBalance = this.calculateWorkLifeBalance(decision, impactValues, year, rng);
-    const workLifeBalance = Math.max(1, Math.min(10, baseBalance + (rng.uniform(0, 1) - 0.5) * 1.5));
+    const baseBalance = this.calculateWorkLifeBalance(decision, impactValues, year, rng)
+    const workLifeBalance = Math.max(1, Math.min(10, baseBalance + (rng.uniform(0, 1) - 0.5) * 1.5))
 
     // Life events affect happiness (20% chance)
-    const lifeEventImpact = rng.uniform(0, 1) < 0.2 ? (rng.uniform(0, 1) - 0.5) * 3 : 0;
-    const overallHappiness = Math.max(1, Math.min(10, (jobSatisfaction + workLifeBalance + (10 - stress)) / 3 + lifeEventImpact));
-    const healthScore = Math.max(1, Math.min(10, 10 - (stress * 0.2) + (rng.uniform(0, 1) - 0.5)));
+    const lifeEventImpact = rng.uniform(0, 1) < 0.2 ? (rng.uniform(0, 1) - 0.5) * 3 : 0
+    const overallHappiness = Math.max(
+      1,
+      Math.min(10, (jobSatisfaction + workLifeBalance + (10 - stress)) / 3 + lifeEventImpact)
+    )
+    const healthScore = Math.max(1, Math.min(10, 10 - stress * 0.2 + (rng.uniform(0, 1) - 0.5)))
 
     return {
       year,
       financialPosition: { netWorth, income, expenses, savings },
       careerProgress: {
-        role: option.parameters?.newRole as string || userProfile.career.currentRole,
+        role: (option.parameters?.newRole as string) || userProfile.career.currentRole,
         seniorityLevel,
         marketValue,
-        jobSatisfaction
+        jobSatisfaction,
       },
-      lifeMetrics: { overallHappiness, stress, workLifeBalance, healthScore }
-    };
+      lifeMetrics: { overallHappiness, stress, workLifeBalance, healthScore },
+    }
   }
 
   /**
@@ -291,86 +299,103 @@ export class SimulationEngine {
   private normalizeScenarioProbabilities(scenarios: Scenario[]): void {
     // Adjust based on market condition likelihood
     scenarios.forEach(scenario => {
-      let adjustment = 1.0;
+      let adjustment = 1.0
       switch (scenario.economicConditions.marketCondition) {
-        case 'recession': adjustment = 0.8; break;
-        case 'downturn': adjustment = 0.9; break;
-        case 'stable': adjustment = 1.2; break;
-        case 'growth': adjustment = 1.0; break;
-        case 'boom': adjustment = 0.7; break;
+        case 'recession':
+          adjustment = 0.8
+          break
+        case 'downturn':
+          adjustment = 0.9
+          break
+        case 'stable':
+          adjustment = 1.2
+          break
+        case 'growth':
+          adjustment = 1.0
+          break
+        case 'boom':
+          adjustment = 0.7
+          break
       }
-      scenario.probability *= adjustment;
-    });
+      scenario.probability *= adjustment
+    })
 
     // Normalize to sum to 1
-    const sum = scenarios.reduce((a, s) => a + s.probability, 0);
+    const sum = scenarios.reduce((a, s) => a + s.probability, 0)
     if (sum > 0) {
-      scenarios.forEach(s => s.probability /= sum);
+      scenarios.forEach(s => (s.probability /= sum))
     }
   }
 
   /**
    * Calculate aggregate metrics across all scenarios
    */
-  private calculateAggregateMetrics(scenarios: Scenario[], dataQuality: DataQuality): AggregateMetrics {
+  private calculateAggregateMetrics(
+    scenarios: Scenario[],
+    dataQuality: DataQuality
+  ): AggregateMetrics {
     // Extract values and weights
-    const weights = scenarios.map(s => s.probability);
-    const financialValues = scenarios.map(s => s.outcomes.year10.financialPosition.netWorth);
-    const careerValues = scenarios.map(s => s.outcomes.year10.careerProgress.jobSatisfaction);
-    const lifestyleValues = scenarios.map(s => s.outcomes.year10.lifeMetrics.overallHappiness);
+    const weights = scenarios.map(s => s.probability)
+    const financialValues = scenarios.map(s => s.outcomes.year10.financialPosition.netWorth)
+    const careerValues = scenarios.map(s => s.outcomes.year10.careerProgress.jobSatisfaction)
+    const lifestyleValues = scenarios.map(s => s.outcomes.year10.lifeMetrics.overallHappiness)
 
     // Weighted expected values
-    const expectedFinancial = this.weightedMean(financialValues, weights);
-    const expectedCareer = this.weightedMean(careerValues, weights);
-    const expectedLifestyle = this.weightedMean(lifestyleValues, weights);
-    const expectedOverall = (expectedFinancial / 100000 + expectedCareer + expectedLifestyle) / 3;
+    const expectedFinancial = this.weightedMean(financialValues, weights)
+    const expectedCareer = this.weightedMean(careerValues, weights)
+    const expectedLifestyle = this.weightedMean(lifestyleValues, weights)
+    const expectedOverall = (expectedFinancial / 100000 + expectedCareer + expectedLifestyle) / 3
 
     // Weighted volatility
-    const financialVolatility = this.weightedStdDev(financialValues, weights) / Math.abs(expectedFinancial || 1);
-    const careerVolatility = this.weightedStdDev(careerValues, weights) / Math.abs(expectedCareer || 1);
-    const lifestyleVolatility = this.weightedStdDev(lifestyleValues, weights) / Math.abs(expectedLifestyle || 1);
+    const financialVolatility =
+      this.weightedStdDev(financialValues, weights) / Math.abs(expectedFinancial || 1)
+    const careerVolatility =
+      this.weightedStdDev(careerValues, weights) / Math.abs(expectedCareer || 1)
+    const lifestyleVolatility =
+      this.weightedStdDev(lifestyleValues, weights) / Math.abs(expectedLifestyle || 1)
 
     // Success probability (weighted)
     const successProbability = scenarios
-      .filter(s =>
-        s.outcomes.year10.financialPosition.netWorth > 0 &&
-        s.outcomes.year10.careerProgress.jobSatisfaction > 5 &&
-        s.outcomes.year10.lifeMetrics.overallHappiness > 5
+      .filter(
+        s =>
+          s.outcomes.year10.financialPosition.netWorth > 0 &&
+          s.outcomes.year10.careerProgress.jobSatisfaction > 5 &&
+          s.outcomes.year10.lifeMetrics.overallHappiness > 5
       )
-      .reduce((sum, s) => sum + s.probability, 0);
+      .reduce((sum, s) => sum + s.probability, 0)
 
     // Weighted confidence interval
-    const confidenceInterval = this.weightedConfidenceInterval(financialValues, weights, 0.9);
+    const confidenceInterval = this.weightedConfidenceInterval(financialValues, weights, 0.9)
 
     // Apply data quality adjustments
-    const uncertaintyMultiplier = dataQuality.confidence === 'high' ? 1.0 :
-      dataQuality.confidence === 'medium' ? 1.2 : 1.5;
+    const uncertaintyMultiplier =
+      dataQuality.confidence === 'high' ? 1.0 : dataQuality.confidence === 'medium' ? 1.2 : 1.5
 
     // Risk and opportunity scores
-    const riskScore = Math.min(10, financialVolatility * 10 * uncertaintyMultiplier);
-    const opportunityScore = Math.min(10, expectedOverall * 2);
+    const riskScore = Math.min(10, financialVolatility * 10 * uncertaintyMultiplier)
+    const opportunityScore = Math.min(10, expectedOverall * 2)
 
     return {
       expectedValue: {
         financial: expectedFinancial,
         career: expectedCareer,
         lifestyle: expectedLifestyle,
-        overall: expectedOverall
+        overall: expectedOverall,
       },
       volatility: {
         financial: financialVolatility * uncertaintyMultiplier,
         career: careerVolatility * uncertaintyMultiplier,
-        lifestyle: lifestyleVolatility * uncertaintyMultiplier
+        lifestyle: lifestyleVolatility * uncertaintyMultiplier,
       },
       probabilityOfSuccess: successProbability,
       confidenceInterval: {
         lower: confidenceInterval.lower,
         upper: confidenceInterval.upper,
-        confidence: confidenceInterval.confidence * dataQuality.completeness
+        confidence: confidenceInterval.confidence * dataQuality.completeness,
       },
       riskScore,
-      opportunityScore
-    };
+      opportunityScore,
+    }
   }
 
   /**
@@ -378,15 +403,15 @@ export class SimulationEngine {
    */
   private static generateRecommendations(
     scenarios: Scenario[],
-    option: DecisionOption,
+    _option: DecisionOption,
     userProfile: UserProfile
   ): Recommendation[] {
-    const recommendations: Recommendation[] = [];
+    const recommendations: Recommendation[] = []
 
     // Analyze scenarios to identify patterns
-    const negativeScenarios = scenarios.filter(s =>
-      s.outcomes.year5.financialPosition.netWorth < userProfile.financial.assets.cash
-    );
+    const negativeScenarios = scenarios.filter(
+      s => s.outcomes.year5.financialPosition.netWorth < userProfile.financial.assets.cash
+    )
 
     if (negativeScenarios.length > scenarios.length * 0.3) {
       recommendations.push({
@@ -398,17 +423,18 @@ export class SimulationEngine {
         actions: [
           'Increase emergency fund to 12 months expenses',
           'Diversify income sources',
-          'Reduce fixed expenses'
+          'Reduce fixed expenses',
         ],
-        potentialImpact: 25
-      });
+        potentialImpact: 25,
+      })
     }
 
     // Timing recommendations
-    const bestTimingScenarios = scenarios.filter(s =>
-      s.economicConditions.marketCondition === 'stable' ||
-      s.economicConditions.marketCondition === 'growth'
-    );
+    const bestTimingScenarios = scenarios.filter(
+      s =>
+        s.economicConditions.marketCondition === 'stable' ||
+        s.economicConditions.marketCondition === 'growth'
+    )
 
     if (bestTimingScenarios.length > scenarios.length * 0.6) {
       recommendations.push({
@@ -420,30 +446,31 @@ export class SimulationEngine {
         actions: [
           'Act within the next 3-6 months',
           'Lock in current favorable rates/conditions',
-          'Negotiate from position of strength'
+          'Negotiate from position of strength',
         ],
-        potentialImpact: 15
-      });
+        potentialImpact: 15,
+      })
     }
 
-    return recommendations;
+    return recommendations
   }
 
   /**
    * Identify key risks
    */
-  private static identifyRisks(scenarios: Scenario[], option: DecisionOption): Risk[] {
-    const risks: Risk[] = [];
+  private static identifyRisks(scenarios: Scenario[], _option: DecisionOption): Risk[] {
+    const risks: Risk[] = []
 
     // Analyze worst-case scenarios
-    const worstScenarios = scenarios
-      .sort((a, b) => a.outcomes.year5.financialPosition.netWorth - b.outcomes.year5.financialPosition.netWorth)
-      .slice(0, Math.floor(scenarios.length * 0.1));
+    const _worstScenarios = scenarios
+      .sort(
+        (a, b) =>
+          a.outcomes.year5.financialPosition.netWorth - b.outcomes.year5.financialPosition.netWorth
+      )
+      .slice(0, Math.floor(scenarios.length * 0.1))
 
     // Job loss risk
-    const jobLossScenarios = scenarios.filter(s =>
-      s.keyEvents.some(e => e.type === 'layoff')
-    );
+    const jobLossScenarios = scenarios.filter(s => s.keyEvents.some(e => e.type === 'layoff'))
 
     if (jobLossScenarios.length > scenarios.length * 0.2) {
       risks.push({
@@ -455,32 +482,42 @@ export class SimulationEngine {
         mitigation: [
           'Maintain strong professional network',
           'Keep skills current and marketable',
-          'Build multiple income streams'
+          'Build multiple income streams',
         ],
         monitoringIndicators: [
           'Industry layoff announcements',
           'Company financial reports',
-          'Economic indicators'
-        ]
-      });
+          'Economic indicators',
+        ],
+      })
     }
 
-    return risks;
+    return risks
   }
 
   /**
    * Identify opportunities
    */
-  private static identifyOpportunities(scenarios: Scenario[], option: DecisionOption): Opportunity[] {
-    const opportunities: Opportunity[] = [];
+  private static identifyOpportunities(
+    scenarios: Scenario[],
+    _option: DecisionOption
+  ): Opportunity[] {
+    const opportunities: Opportunity[] = []
 
     // Analyze best-case scenarios
     const bestScenarios = scenarios
-      .sort((a, b) => b.outcomes.year5.financialPosition.netWorth - a.outcomes.year5.financialPosition.netWorth)
-      .slice(0, Math.floor(scenarios.length * 0.1));
+      .sort(
+        (a, b) =>
+          b.outcomes.year5.financialPosition.netWorth - a.outcomes.year5.financialPosition.netWorth
+      )
+      .slice(0, Math.floor(scenarios.length * 0.1))
 
-    const avgBestCase = SimulationEngine.average(bestScenarios.map(s => s.outcomes.year5.financialPosition.netWorth));
-    const avgCase = SimulationEngine.average(scenarios.map(s => s.outcomes.year5.financialPosition.netWorth));
+    const avgBestCase = SimulationEngine.average(
+      bestScenarios.map(s => s.outcomes.year5.financialPosition.netWorth)
+    )
+    const avgCase = SimulationEngine.average(
+      scenarios.map(s => s.outcomes.year5.financialPosition.netWorth)
+    )
 
     if (avgBestCase > avgCase * 2) {
       opportunities.push({
@@ -491,147 +528,169 @@ export class SimulationEngine {
         requirements: [
           'Strong execution on core plan',
           'Market conditions remain favorable',
-          'Continuous skill development'
+          'Continuous skill development',
         ],
-        potentialValue: avgBestCase - avgCase
-      });
+        potentialValue: avgBestCase - avgCase,
+      })
     }
 
-    return opportunities;
-  }
-
-  // Utility functions
-
-  private static normalRandom(mean: number, stdDev: number): number {
-    const u1 = Math.random();
-    const u2 = Math.random();
-    const z0 = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
-    return z0 * stdDev + mean;
+    return opportunities
   }
 
   private static average(numbers: number[]): number {
-    return numbers.reduce((a, b) => a + b, 0) / numbers.length;
+    return numbers.reduce((a, b) => a + b, 0) / numbers.length
   }
 
-  private static standardDeviation(numbers: number[]): number {
-    const avg = SimulationEngine.average(numbers);
-    const squaredDiffs = numbers.map(n => Math.pow(n - avg, 2));
-    return Math.sqrt(SimulationEngine.average(squaredDiffs));
-  }
-
-  private static determineIndustryOutlook(marketCondition: EconomicConditions['marketCondition']): EconomicConditions['industryOutlook'] {
-    const rand = Math.random();
+  private static determineIndustryOutlook(
+    marketCondition: EconomicConditions['marketCondition']
+  ): EconomicConditions['industryOutlook'] {
+    const rand = Math.random()
     switch (marketCondition) {
       case 'recession':
-        return rand < 0.7 ? 'declining' : 'stable';
+        return rand < 0.7 ? 'declining' : 'stable'
       case 'downturn':
-        return rand < 0.5 ? 'declining' : rand < 0.9 ? 'stable' : 'growing';
+        return rand < 0.5 ? 'declining' : rand < 0.9 ? 'stable' : 'growing'
       case 'stable':
-        return rand < 0.1 ? 'declining' : rand < 0.7 ? 'stable' : rand < 0.95 ? 'growing' : 'booming';
+        return rand < 0.1
+          ? 'declining'
+          : rand < 0.7
+            ? 'stable'
+            : rand < 0.95
+              ? 'growing'
+              : 'booming'
       case 'growth':
-        return rand < 0.3 ? 'stable' : rand < 0.8 ? 'growing' : 'booming';
+        return rand < 0.3 ? 'stable' : rand < 0.8 ? 'growing' : 'booming'
       case 'boom':
-        return rand < 0.4 ? 'growing' : 'booming';
+        return rand < 0.4 ? 'growing' : 'booming'
     }
   }
 
   private static calculateBaselineFinancials(userProfile: UserProfile) {
-    const totalAssets = Object.values(userProfile.financial.assets).reduce((a, b) => a + b, 0);
-    const totalLiabilities = Object.values(userProfile.financial.liabilities).reduce((a, b) => a + b, 0);
+    const totalAssets = Object.values(userProfile.financial.assets).reduce((a, b) => a + b, 0)
+    const totalLiabilities = Object.values(userProfile.financial.liabilities).reduce(
+      (a, b) => a + b,
+      0
+    )
     return {
       netWorth: totalAssets - totalLiabilities,
       income: userProfile.career.salary,
-      expenses: Object.values(userProfile.financial.monthlyExpenses).reduce((a, b) => a + b, 0) * 12,
-      savings: userProfile.career.salary * (userProfile.financial.savingsRate / 100)
-    };
+      expenses:
+        Object.values(userProfile.financial.monthlyExpenses).reduce((a, b) => a + b, 0) * 12,
+      savings: userProfile.career.salary * (userProfile.financial.savingsRate / 100),
+    }
   }
 
-  private calculateCareerGrowthRate(userProfile: UserProfile, economicConditions: EconomicConditions): number {
-    let baseGrowth = 0.03; // 3% base growth
+  private calculateCareerGrowthRate(
+    userProfile: UserProfile,
+    economicConditions: EconomicConditions
+  ): number {
+    let baseGrowth = 0.03 // 3% base growth
 
     // Industry outlook modifier
     switch (economicConditions.industryOutlook) {
-      case 'declining': baseGrowth *= 0.5; break;
-      case 'stable': baseGrowth *= 1; break;
-      case 'growing': baseGrowth *= 1.5; break;
-      case 'booming': baseGrowth *= 2; break;
+      case 'declining':
+        baseGrowth *= 0.5
+        break
+      case 'stable':
+        baseGrowth *= 1
+        break
+      case 'growing':
+        baseGrowth *= 1.5
+        break
+      case 'booming':
+        baseGrowth *= 2
+        break
     }
 
     // Experience modifier
-    const experience = userProfile.career.yearsExperience || 0;
-    if (experience < 5) baseGrowth *= 1.5;
-    else if (experience < 10) baseGrowth *= 1.2;
+    const experience = userProfile.career.yearsExperience || 0
+    if (experience < 5) baseGrowth *= 1.5
+    else if (experience < 10) baseGrowth *= 1.2
 
-    return baseGrowth;
+    return baseGrowth
   }
 
   private calculateInvestmentReturn(economicConditions: EconomicConditions, rng: RNG): number {
-    const baseReturn = 0.07;
-    const volatility = 0.15;
+    const baseReturn = 0.07
+    const volatility = 0.15
 
-    let meanReturn: number;
+    let meanReturn: number
     switch (economicConditions.marketCondition) {
-      case 'recession': meanReturn = baseReturn - 0.15; break;
-      case 'downturn': meanReturn = baseReturn - 0.05; break;
-      case 'stable': meanReturn = baseReturn; break;
-      case 'growth': meanReturn = baseReturn + 0.05; break;
-      case 'boom': meanReturn = baseReturn + 0.10; break;
+      case 'recession':
+        meanReturn = baseReturn - 0.15
+        break
+      case 'downturn':
+        meanReturn = baseReturn - 0.05
+        break
+      case 'stable':
+        meanReturn = baseReturn
+        break
+      case 'growth':
+        meanReturn = baseReturn + 0.05
+        break
+      case 'boom':
+        meanReturn = baseReturn + 0.1
+        break
     }
 
-    return rng.normal(meanReturn, volatility);
+    return rng.normal(meanReturn, volatility)
   }
 
   // Moved to earlier in the file
 
   // Methods for data quality assessment and enrichment
 
-  private assessDataQuality(profile: Partial<UserProfile>, decisionType: Decision['type']): DataQuality {
-    const requiredFields = this.getRequiredFields(decisionType);
-    let provided = 0;
-    let critical = 0;
-    let criticalProvided = 0;
+  private assessDataQuality(
+    profile: Partial<UserProfile>,
+    decisionType: Decision['type']
+  ): DataQuality {
+    const requiredFields = this.getRequiredFields(decisionType)
+    let provided = 0
+    let critical = 0
+    let criticalProvided = 0
 
     requiredFields.forEach(field => {
-      const value = this.getNestedValue(profile, field.path);
+      const value = this.getNestedValue(profile, field.path)
       if (value !== undefined && value !== null) {
-        provided++;
-        if (field.critical) criticalProvided++;
+        provided++
+        if (field.critical) criticalProvided++
       }
-      if (field.critical) critical++;
-    });
+      if (field.critical) critical++
+    })
 
-    const completeness = provided / requiredFields.length;
-    const criticalCompleteness = critical > 0 ? criticalProvided / critical : 1;
+    const completeness = provided / requiredFields.length
+    const criticalCompleteness = critical > 0 ? criticalProvided / critical : 1
 
     return {
       completeness,
       criticalCompleteness,
-      confidence: this.calculateConfidenceLevel(completeness, criticalCompleteness)
-    };
+      confidence: this.calculateConfidenceLevel(completeness, criticalCompleteness),
+    }
   }
 
   private async enrichUserProfile(
     partial: Partial<UserProfile>,
-    decisionType: Decision['type']
+    _decisionType: Decision['type']
   ): Promise<UserProfile> {
-    const enriched = JSON.parse(JSON.stringify(partial)) as any;
+    const enriched = JSON.parse(JSON.stringify(partial)) as any
 
     // Enrich salary data if missing
     if (partial.career?.currentRole && !partial.career?.salary) {
       const salaryData = await this.dataEnrichment.getSalaryDistribution({
         jobTitle: partial.career.currentRole,
         industry: partial.career.industry,
-        location: partial.demographics?.location ?
-          `${partial.demographics.location.city}, ${partial.demographics.location.state}` : undefined,
-        experience: partial.career.yearsExperience
-      });
+        location: partial.demographics?.location
+          ? `${partial.demographics.location.city}, ${partial.demographics.location.state}`
+          : undefined,
+        experience: partial.career.yearsExperience,
+      })
 
-      enriched.career = enriched.career || {};
-      enriched.career.salary = salaryData.likely;
+      enriched.career = enriched.career || {}
+      enriched.career.salary = salaryData.median !== undefined ? salaryData.median : salaryData.likely
     }
 
     // Apply intelligent defaults
-    return this.applyDefaults(enriched);
+    return this.applyDefaults(enriched)
   }
 
   private getRequiredFields(decisionType: Decision['type']): RequiredField[] {
@@ -639,8 +698,8 @@ export class SimulationEngine {
       { path: 'demographics.age', critical: true },
       { path: 'demographics.location.city', critical: true },
       { path: 'career.salary', critical: true },
-      { path: 'financial.monthlyExpenses', critical: true }
-    ];
+      { path: 'financial.monthlyExpenses', critical: true },
+    ]
 
     switch (decisionType) {
       case 'career_change':
@@ -648,37 +707,37 @@ export class SimulationEngine {
         base.push(
           { path: 'career.currentRole', critical: true },
           { path: 'career.yearsExperience', critical: true }
-        );
-        break;
+        )
+        break
       case 'home_purchase':
         base.push(
           { path: 'financial.assets', critical: true },
           { path: 'financial.creditScore', critical: false }
-        );
-        break;
+        )
+        break
     }
 
-    return base;
+    return base
   }
 
   private getNestedValue(obj: any, path: string): any {
-    return path.split('.').reduce((curr, key) => curr?.[key], obj);
+    return path.split('.').reduce((curr, key) => curr?.[key], obj)
   }
 
   private calculateConfidenceLevel(
     completeness: number,
     criticalCompleteness: number
   ): 'high' | 'medium' | 'low' {
-    const score = completeness * 0.4 + criticalCompleteness * 0.6;
-    if (score >= 0.8) return 'high';
-    if (score >= 0.6) return 'medium';
-    return 'low';
+    const score = completeness * 0.4 + criticalCompleteness * 0.6
+    if (score >= 0.8) return 'high'
+    if (score >= 0.6) return 'medium'
+    return 'low'
   }
 
   private adjustIterationCount(base: number, completeness: number): number {
-    if (completeness < 0.5) return base * 2;
-    if (completeness < 0.7) return Math.floor(base * 1.5);
-    return base;
+    if (completeness < 0.5) return base * 2
+    if (completeness < 0.7) return Math.floor(base * 1.5)
+    return base
   }
 
   private applyDefaults(profile: any): UserProfile {
@@ -691,14 +750,14 @@ export class SimulationEngine {
           city: 'Unknown',
           state: 'Unknown',
           country: 'USA',
-          zipCode: '00000'
+          zipCode: '00000',
         },
         education: {
           level: 'bachelors' as const,
           field: 'General',
-          school: 'Unknown'
+          school: 'Unknown',
         },
-        healthStatus: 'good' as const
+        healthStatus: 'good' as const,
       },
       career: {
         currentRole: 'Professional',
@@ -712,10 +771,10 @@ export class SimulationEngine {
           base: 65000,
           bonus: 0,
           equity: 0,
-          benefits: 0
+          benefits: 0,
         },
         workStyle: 'office' as const,
-        careerTrajectory: 'stable' as const
+        careerTrajectory: 'stable' as const,
       },
       financial: {
         assets: {
@@ -723,13 +782,13 @@ export class SimulationEngine {
           investments: 30000,
           retirement: 50000,
           realEstate: 0,
-          other: 0
+          other: 0,
         },
         liabilities: {
           creditCards: 0,
           studentLoans: 0,
           mortgage: 0,
-          other: 0
+          other: 0,
         },
         monthlyExpenses: {
           housing: 1500,
@@ -738,67 +797,65 @@ export class SimulationEngine {
           utilities: 200,
           entertainment: 300,
           healthcare: 200,
-          other: 200
+          other: 200,
         },
         savingsRate: 10,
         creditScore: 700,
-        riskTolerance: 'moderate' as const
+        riskTolerance: 'moderate' as const,
       },
       preferences: {},
-      goals: {}
-    };
+      goals: {},
+    }
 
-    return this.deepMerge(defaults, profile);
+    return this.deepMerge(defaults, profile)
   }
 
   private deepMerge(target: any, source: any): any {
-    const output = Object.assign({}, target);
+    const output = Object.assign({}, target)
     if (this.isObject(target) && this.isObject(source)) {
       Object.keys(source).forEach(key => {
         if (this.isObject(source[key])) {
-          if (!(key in target))
-            Object.assign(output, { [key]: source[key] });
-          else
-            output[key] = this.deepMerge(target[key], source[key]);
+          if (!(key in target)) Object.assign(output, { [key]: source[key] })
+          else output[key] = this.deepMerge(target[key], source[key])
         } else {
-          Object.assign(output, { [key]: source[key] });
+          Object.assign(output, { [key]: source[key] })
         }
-      });
+      })
     }
-    return output;
+    return output
   }
 
   private isObject(item: any): boolean {
-    return item && typeof item === 'object' && !Array.isArray(item);
+    return item && typeof item === 'object' && !Array.isArray(item)
   }
 
   private getMonthlyExpenses(userProfile: UserProfile): number {
-    const expenses = userProfile.financial.monthlyExpenses;
+    const expenses = userProfile.financial.monthlyExpenses
 
     // Handle both number and object types
     if (typeof expenses === 'number') {
-      return expenses;
+      return expenses
     } else if (typeof expenses === 'object') {
-      return Object.values(expenses).reduce((sum, val) => sum + (val || 0), 0);
+      return Object.values(expenses).reduce((sum, val) => sum + (val || 0), 0)
     }
 
-    return 3000; // Default fallback
+    return 3000 // Default fallback
   }
 
   private extractImpactValues(option: DecisionOption): any {
-    const impact = option.estimatedImpact;
+    const impact = option.estimatedImpact
 
     // Handle both flat and nested impact structures
     if (typeof impact === 'object' && 'lifestyle' in impact) {
-      return impact;
+      return impact
     }
 
     // Create default structure
     return {
       financial: { netWorth: 0, income: 0 },
       career: { satisfaction: 0, growth: 0 },
-      lifestyle: { fulfillment: 0, stress: 0, workLifeBalance: 0 }
-    };
+      lifestyle: { fulfillment: 0, stress: 0, workLifeBalance: 0 },
+    }
   }
 
   private getAssumptions(economicConditions: EconomicConditions): Record<string, string> {
@@ -807,8 +864,8 @@ export class SimulationEngine {
       gdpGrowth: `${economicConditions.gdpGrowth.toFixed(1)}% annual`,
       unemployment: `${economicConditions.unemploymentRate.toFixed(1)}%`,
       marketCondition: economicConditions.marketCondition,
-      industryOutlook: economicConditions.industryOutlook
-    };
+      industryOutlook: economicConditions.industryOutlook,
+    }
   }
 
   private calculateJobSatisfaction(
@@ -817,18 +874,18 @@ export class SimulationEngine {
     year: number,
     rng: RNG
   ): number {
-    let satisfaction = 7 + rng.normal(0, 0.5);
+    let satisfaction = 7 + rng.normal(0, 0.5)
 
     // Career change honeymoon period
     if ((decision.type === 'career_change' || decision.type === 'job_offer') && year < 2) {
-      satisfaction += 1.5;
+      satisfaction += 1.5
     }
 
     // Add impact
-    const impactValue = impact?.lifestyle?.fulfillment || 0;
-    satisfaction += impactValue / 2;
+    const impactValue = impact?.lifestyle?.fulfillment || 0
+    satisfaction += impactValue / 2
 
-    return Math.max(1, Math.min(10, satisfaction));
+    return Math.max(1, Math.min(10, satisfaction))
   }
 
   private calculateStress(
@@ -838,46 +895,44 @@ export class SimulationEngine {
     year: number,
     rng: RNG
   ): number {
-    let stress = 5 + rng.normal(0, 0.5);
+    let stress = 5 + rng.normal(0, 0.5)
 
     // Economic conditions
-    if (economicConditions.marketCondition === 'recession') stress += 2;
-    if (economicConditions.marketCondition === 'boom') stress += 0.5;
+    if (economicConditions.marketCondition === 'recession') stress += 2
+    if (economicConditions.marketCondition === 'boom') stress += 0.5
 
     // Decision adjustments
-    if ((decision.type === 'career_change' || decision.type === 'job_offer') && year < 1) stress += 1.5;
-    if (decision.type === 'relocation' && year < 1) stress += 2;
+    if ((decision.type === 'career_change' || decision.type === 'job_offer') && year < 1)
+      stress += 1.5
+    if (decision.type === 'relocation' && year < 1) stress += 2
 
     // Add impact
-    const impactValue = impact?.lifestyle?.stress || 0;
-    stress += impactValue;
+    const impactValue = impact?.lifestyle?.stress || 0
+    stress += impactValue
 
-    return Math.max(1, Math.min(10, stress));
+    return Math.max(1, Math.min(10, stress))
   }
 
   private calculateWorkLifeBalance(
-    decision: Decision,
+    _decision: Decision,
     impact: any,
     year: number,
     rng: RNG
   ): number {
-    let balance = 6 + rng.normal(0, 0.3);
+    let balance = 6 + rng.normal(0, 0.3)
 
     // Add impact
-    const impactValue = impact?.lifestyle?.workLifeBalance || 0;
-    balance += impactValue;
+    const impactValue = impact?.lifestyle?.workLifeBalance || 0
+    balance += impactValue
 
     // Settling bonus
-    if (year > 2) balance += 0.5;
+    if (year > 2) balance += 0.5
 
-    return Math.max(1, Math.min(10, balance));
+    return Math.max(1, Math.min(10, balance))
   }
 
-  private generateKeyEvents(
-    economicConditions: EconomicConditions,
-    rng: RNG
-  ): KeyEvent[] {
-    const events: KeyEvent[] = [];
+  private generateKeyEvents(economicConditions: EconomicConditions, rng: RNG): KeyEvent[] {
+    const events: KeyEvent[] = []
 
     // Market-based events
     if (economicConditions.marketCondition === 'recession' && rng.uniform(0, 1) < 0.3) {
@@ -886,8 +941,8 @@ export class SimulationEngine {
         type: 'market_crash',
         description: 'Major market downturn affecting investments',
         impact: 'negative',
-        financialImpact: -50000
-      });
+        financialImpact: -50000,
+      })
     }
 
     // Career events
@@ -896,36 +951,36 @@ export class SimulationEngine {
         year: Math.floor(rng.uniform(2, 8)),
         type: 'promotion',
         description: 'Promotion opportunity due to industry growth',
-        impact: 'positive'
-      });
+        impact: 'positive',
+      })
     }
 
-    return events;
+    return events
   }
 
   // Statistical utility methods
   private weightedMean(values: number[], weights: number[]): number {
-    if (values.length !== weights.length || values.length === 0) return 0;
+    if (values.length !== weights.length || values.length === 0) return 0
 
-    const totalWeight = weights.reduce((sum, w) => sum + w, 0);
-    if (totalWeight === 0) return 0;
+    const totalWeight = weights.reduce((sum, w) => sum + w, 0)
+    if (totalWeight === 0) return 0
 
-    const weightedSum = values.reduce((sum, val, i) => sum + val * weights[i], 0);
-    return weightedSum / totalWeight;
+    const weightedSum = values.reduce((sum, val, i) => sum + val * weights[i], 0)
+    return weightedSum / totalWeight
   }
 
   private weightedStdDev(values: number[], weights: number[]): number {
-    if (values.length !== weights.length || values.length < 2) return 0;
+    if (values.length !== weights.length || values.length < 2) return 0
 
-    const mean = this.weightedMean(values, weights);
-    const totalWeight = weights.reduce((sum, w) => sum + w, 0);
-    if (totalWeight === 0) return 0;
+    const mean = this.weightedMean(values, weights)
+    const totalWeight = weights.reduce((sum, w) => sum + w, 0)
+    if (totalWeight === 0) return 0
 
     const weightedSquaredDiff = values.reduce((sum, val, i) => {
-      return sum + weights[i] * Math.pow(val - mean, 2);
-    }, 0);
+      return sum + weights[i] * (val - mean) ** 2
+    }, 0)
 
-    return Math.sqrt(weightedSquaredDiff / totalWeight);
+    return Math.sqrt(weightedSquaredDiff / totalWeight)
   }
 
   private weightedConfidenceInterval(
@@ -934,45 +989,46 @@ export class SimulationEngine {
     confidence: number
   ): { lower: number; upper: number; confidence: number } {
     if (values.length !== weights.length || values.length === 0) {
-      return { lower: 0, upper: 0, confidence: 0 };
+      return { lower: 0, upper: 0, confidence: 0 }
     }
 
     // Sort values with their corresponding weights
-    const sortedPairs = values.map((val, i) => ({ value: val, weight: weights[i] }))
-      .sort((a, b) => a.value - b.value);
+    const sortedPairs = values
+      .map((val, i) => ({ value: val, weight: weights[i] }))
+      .sort((a, b) => a.value - b.value)
 
-    const totalWeight = weights.reduce((sum, w) => sum + w, 0);
-    const alpha = (1 - confidence) / 2;
-    const lowerTarget = alpha * totalWeight;
-    const upperTarget = (1 - alpha) * totalWeight;
+    const totalWeight = weights.reduce((sum, w) => sum + w, 0)
+    const alpha = (1 - confidence) / 2
+    const lowerTarget = alpha * totalWeight
+    const upperTarget = (1 - alpha) * totalWeight
 
-    let cumulativeWeight = 0;
-    let lower = sortedPairs[0].value;
-    let upper = sortedPairs[sortedPairs.length - 1].value;
+    let cumulativeWeight = 0
+    let lower = sortedPairs[0].value
+    let upper = sortedPairs[sortedPairs.length - 1].value
 
     for (const pair of sortedPairs) {
-      cumulativeWeight += pair.weight;
+      cumulativeWeight += pair.weight
       if (cumulativeWeight >= lowerTarget && lower === sortedPairs[0].value) {
-        lower = pair.value;
+        lower = pair.value
       }
       if (cumulativeWeight >= upperTarget) {
-        upper = pair.value;
-        break;
+        upper = pair.value
+        break
       }
     }
 
-    return { lower, upper, confidence };
+    return { lower, upper, confidence }
   }
 }
 
 // Type definitions
 interface RequiredField {
-  path: string;
-  critical: boolean;
+  path: string
+  critical: boolean
 }
 
 interface DataQuality {
-  completeness: number;
-  criticalCompleteness: number;
-  confidence: 'high' | 'medium' | 'low';
+  completeness: number
+  criticalCompleteness: number
+  confidence: 'high' | 'medium' | 'low'
 }

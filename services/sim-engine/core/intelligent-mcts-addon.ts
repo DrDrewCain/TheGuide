@@ -13,48 +13,48 @@
  * - The LLM learns from the algorithmic results to make better predictions
  */
 
-import { Decision, DecisionOption, UserProfile, SimulationResult } from '@theguide/models';
-import { SimulationEngine } from './engine';
-import { AdvancedSimulationEngine } from './advanced-engine';
-import { DecisionAnalysisService } from '@theguide/ai-services';
+import { DecisionAnalysisService } from '@theguide/ai-services'
+import type { Decision, DecisionOption, SimulationResult, UserProfile } from '@theguide/models'
+import { AdvancedSimulationEngine } from './advanced-engine'
+import { SimulationEngine } from './engine'
 
 interface IntelligentMCTSConfig {
   // Core algorithm configuration
-  algorithmicSimulations: number;  // How many pure algorithmic scenarios to generate
-  llmGuidedSimulations: number;    // How many LLM-guided scenarios to explore
+  algorithmicSimulations: number // How many pure algorithmic scenarios to generate
+  llmGuidedSimulations: number // How many LLM-guided scenarios to explore
 
   // LLM-MCTS parameters
-  explorationDepth: number;        // How deep to explore decision trees
-  llmTemperature: number;          // Creativity vs consistency (0.0-1.0)
+  explorationDepth: number // How deep to explore decision trees
+  llmTemperature: number // Creativity vs consistency (0.0-1.0)
 
   // Hybrid intelligence settings
-  algorithmWeight: number;         // Weight given to algorithmic results (0-1)
-  llmWeight: number;              // Weight given to LLM insights (0-1)
+  algorithmWeight: number // Weight given to algorithmic results (0-1)
+  llmWeight: number // Weight given to LLM insights (0-1)
 
   // API configuration
-  enableLLM: boolean;
-  apiKey?: string;
+  enableLLM: boolean
+  apiKey?: string
 }
 
 export class IntelligentMCTSAddon {
-  private coreEngine: SimulationEngine;
-  private advancedEngine: AdvancedSimulationEngine;
-  private llmService?: DecisionAnalysisService;
-  private config: IntelligentMCTSConfig;
+  private advancedEngine: AdvancedSimulationEngine
+  private llmService?: DecisionAnalysisService
+  private config: IntelligentMCTSConfig
+  private coreEngine: SimulationEngine
 
   constructor(config: IntelligentMCTSConfig) {
-    this.config = config;
+    this.config = config
 
     // Initialize core algorithmic engines that form our foundation
-    this.coreEngine = new SimulationEngine();
+    this.coreEngine = new SimulationEngine()
 
     // Create a unique seed for this instance
-    const seed = `mcts-${Date.now()}-${Math.random()}`;
-    this.advancedEngine = new AdvancedSimulationEngine(seed);
+    const seed = `mcts-${Date.now()}-${Math.random()}`
+    this.advancedEngine = new AdvancedSimulationEngine(seed)
 
     // Initialize LLM service if enabled
     if (config.enableLLM && config.apiKey) {
-      this.llmService = new DecisionAnalysisService(config.apiKey);
+      this.llmService = new DecisionAnalysisService(config.apiKey)
     }
   }
 
@@ -74,7 +74,7 @@ export class IntelligentMCTSAddon {
     progressCallback?: (progress: { step: string; percentage: number }) => void
   ): Promise<SimulationResult> {
     // Phase 1: Algorithmic Foundation (40% of progress)
-    progressCallback?.({ step: 'Running algorithmic Monte Carlo simulations', percentage: 5 });
+    progressCallback?.({ step: 'Running algorithmic Monte Carlo simulations', percentage: 5 })
 
     const algorithmicResult = await this.advancedEngine.runAdvancedSimulation(
       decision,
@@ -86,43 +86,39 @@ export class IntelligentMCTSAddon {
         useMLMC: true,
         useCopulas: true,
         reduceScenarios: true,
-        runSensitivity: true
+        runSensitivity: true,
       }
-    );
+    )
 
     // If LLM is not enabled, return pure algorithmic results
     if (!this.config.enableLLM || !this.llmService) {
-      progressCallback?.({ step: 'Complete (Algorithmic only)', percentage: 100 });
-      return algorithmicResult;
+      progressCallback?.({ step: 'Complete (Algorithmic only)', percentage: 100 })
+      return algorithmicResult
     }
 
     // Phase 2: LLM-MCTS Analysis (20% of progress)
-    progressCallback?.({ step: 'Running LLM-MCTS analysis', percentage: 45 });
-    const llmAnalysis = await this.llmService.analyzeDecision(decision, option, profile);
+    progressCallback?.({ step: 'Running LLM-MCTS analysis', percentage: 45 })
+    const llmAnalysis = await this.llmService.analyzeDecision(decision, option, profile)
 
     // Step 3: Generate AI-guided scenarios
-    progressCallback?.({ step: 'Generating AI-guided scenarios', percentage: 60 });
+    progressCallback?.({ step: 'Generating AI-guided scenarios', percentage: 60 })
     const aiGuidedScenarios = await this.generateAIGuidedScenarios(
       decision,
       option,
       profile,
       llmAnalysis.scenarios
-    );
+    )
 
     // Step 4: Merge and weight results
-    progressCallback?.({ step: 'Combining results', percentage: 80 });
-    const mergedResult = this.mergeResults(
-      algorithmicResult,
-      aiGuidedScenarios,
-      llmAnalysis
-    );
+    progressCallback?.({ step: 'Combining results', percentage: 80 })
+    const mergedResult = this.mergeResults(algorithmicResult, aiGuidedScenarios, llmAnalysis)
 
     // Step 5: Generate enhanced insights
-    progressCallback?.({ step: 'Generating insights', percentage: 90 });
-    const enhancedResult = await this.enhanceWithAIInsights(mergedResult, llmAnalysis);
+    progressCallback?.({ step: 'Generating insights', percentage: 90 })
+    const enhancedResult = await this.enhanceWithAIInsights(mergedResult, llmAnalysis)
 
-    progressCallback?.({ step: 'Complete', percentage: 100 });
-    return enhancedResult;
+    progressCallback?.({ step: 'Complete', percentage: 100 })
+    return enhancedResult
   }
 
   private async generateAIGuidedScenarios(
@@ -131,11 +127,11 @@ export class IntelligentMCTSAddon {
     profile: Partial<UserProfile>,
     aiScenarios: any[]
   ): Promise<any[]> {
-    const scenarios = [];
+    const scenarios = []
 
     for (const aiScenario of aiScenarios) {
       // Use AI scenario events to guide parameter generation
-      const guidedParams = this.extractParametersFromAIScenario(aiScenario);
+      const guidedParams = this.extractParametersFromAIScenario(aiScenario)
 
       // Run targeted simulations with these parameters
       const targetedScenarios = await this.runTargetedSimulations(
@@ -144,38 +140,38 @@ export class IntelligentMCTSAddon {
         profile,
         guidedParams,
         Math.floor(this.config.llmGuidedSimulations / aiScenarios.length)
-      );
+      )
 
-      scenarios.push(...targetedScenarios);
+      scenarios.push(...targetedScenarios)
     }
 
-    return scenarios;
+    return scenarios
   }
 
   private extractParametersFromAIScenario(aiScenario: any): any {
     const params: any = {
       marketVolatility: 0.2,
       careerGrowthRate: 0.05,
-      inflationRate: 0.03
-    };
+      inflationRate: 0.03,
+    }
 
     // Adjust parameters based on AI scenario events
-    const events = Object.values(aiScenario.events);
+    const events = Object.values(aiScenario.events)
 
     if (events.includes('market_downturn')) {
-      params.marketVolatility = 0.4;
-      params.careerGrowthRate = -0.02;
+      params.marketVolatility = 0.4
+      params.careerGrowthRate = -0.02
     }
 
     if (events.includes('promotion')) {
-      params.careerGrowthRate = 0.15;
+      params.careerGrowthRate = 0.15
     }
 
     if (events.includes('unexpected_expense')) {
-      params.emergencyFundDrain = 0.3;
+      params.emergencyFundDrain = 0.3
     }
 
-    return params;
+    return params
   }
 
   private async runTargetedSimulations(
@@ -187,60 +183,66 @@ export class IntelligentMCTSAddon {
   ): Promise<any[]> {
     // For now, return empty array since coreEngine doesn't have generateScenario method
     // TODO: Implement targeted scenario generation with specific parameters
-    return [];
+    return []
   }
 
   private mergeResults(
     baseResult: SimulationResult,
     aiGuidedScenarios: any[],
-    llmAnalysis: any
+    _llmAnalysis: any
   ): SimulationResult {
-    const weight = this.config.algorithmWeight;
+    const weight = this.config.algorithmWeight
 
     // Combine scenarios
     const allScenarios = [
       ...baseResult.scenarios.map(s => ({ ...s, source: 'algorithmic' })),
-      ...aiGuidedScenarios.map(s => ({ ...s, source: 'ai-guided' }))
-    ];
+      ...aiGuidedScenarios.map(s => ({ ...s, source: 'ai-guided' })),
+    ]
 
     // Recalculate metrics with weighting
     const weightedMetrics = this.calculateWeightedMetrics(
       baseResult.aggregateMetrics,
       aiGuidedScenarios,
       weight
-    );
+    )
 
     return {
       ...baseResult,
       scenarios: allScenarios,
-      aggregateMetrics: weightedMetrics
-    };
+      aggregateMetrics: weightedMetrics,
+    }
   }
 
-  private calculateWeightedMetrics(
-    baseMetrics: any,
-    aiScenarios: any[],
-    weight: number
-  ): any {
+  private calculateWeightedMetrics(baseMetrics: any, aiScenarios: any[], weight: number): any {
     // Calculate AI scenario metrics
-    const aiMetrics = this.calculateMetricsFromScenarios(aiScenarios);
+    const aiMetrics = this.calculateMetricsFromScenarios(aiScenarios)
 
     // Weight and combine
     return {
       expectedValue: {
-        financial: baseMetrics.expectedValue.financial * (1 - weight) + aiMetrics.expectedValue.financial * weight,
-        career: baseMetrics.expectedValue.career * (1 - weight) + aiMetrics.expectedValue.career * weight,
-        lifestyle: baseMetrics.expectedValue.lifestyle * (1 - weight) + aiMetrics.expectedValue.lifestyle * weight,
-        overall: baseMetrics.expectedValue.overall * (1 - weight) + aiMetrics.expectedValue.overall * weight
+        financial:
+          baseMetrics.expectedValue.financial * (1 - weight) +
+          aiMetrics.expectedValue.financial * weight,
+        career:
+          baseMetrics.expectedValue.career * (1 - weight) + aiMetrics.expectedValue.career * weight,
+        lifestyle:
+          baseMetrics.expectedValue.lifestyle * (1 - weight) +
+          aiMetrics.expectedValue.lifestyle * weight,
+        overall:
+          baseMetrics.expectedValue.overall * (1 - weight) +
+          aiMetrics.expectedValue.overall * weight,
       },
       volatility: {
-        financial: baseMetrics.volatility.financial * (1 - weight) + aiMetrics.volatility.financial * weight,
+        financial:
+          baseMetrics.volatility.financial * (1 - weight) + aiMetrics.volatility.financial * weight,
         career: baseMetrics.volatility.career * (1 - weight) + aiMetrics.volatility.career * weight,
-        lifestyle: baseMetrics.volatility.lifestyle * (1 - weight) + aiMetrics.volatility.lifestyle * weight
+        lifestyle:
+          baseMetrics.volatility.lifestyle * (1 - weight) + aiMetrics.volatility.lifestyle * weight,
       },
       riskScore: baseMetrics.riskScore * (1 - weight) + aiMetrics.riskScore * weight,
-      opportunityScore: baseMetrics.opportunityScore * (1 - weight) + aiMetrics.opportunityScore * weight
-    };
+      opportunityScore:
+        baseMetrics.opportunityScore * (1 - weight) + aiMetrics.opportunityScore * weight,
+    }
   }
 
   private calculateMetricsFromScenarios(_scenarios: any[]): any {
@@ -251,16 +253,16 @@ export class IntelligentMCTSAddon {
         financial: 0,
         career: 0,
         lifestyle: 0,
-        overall: 0
+        overall: 0,
       },
       volatility: {
         financial: 0,
         career: 0,
-        lifestyle: 0
+        lifestyle: 0,
       },
       riskScore: 0,
-      opportunityScore: 0
-    };
+      opportunityScore: 0,
+    }
   }
 
   private async enhanceWithAIInsights(
@@ -277,8 +279,8 @@ export class IntelligentMCTSAddon {
           description: r,
           impact: 'high',
           timeframe: 'medium',
-          actions: []
-        }))
+          actions: [],
+        })),
       ],
       risks: [
         ...result.risks,
@@ -289,8 +291,8 @@ export class IntelligentMCTSAddon {
           description: r,
           category: 'ai-identified',
           mitigation: '',
-          monitoringIndicators: []
-        }))
+          monitoringIndicators: [],
+        })),
       ],
       opportunities: [
         ...result.opportunities,
@@ -300,11 +302,11 @@ export class IntelligentMCTSAddon {
           impact: 'medium',
           description: o,
           requirements: [],
-          timeframe: 'medium'
-        }))
-      ]
-    };
+          timeframe: 'medium',
+        })),
+      ],
+    }
   }
 }
 
-export default IntelligentMCTSAddon;
+export default IntelligentMCTSAddon

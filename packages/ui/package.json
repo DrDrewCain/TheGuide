@@ -1,10 +1,19 @@
 {
   "name": "@theguide/ui",
   "version": "1.0.0",
-  "main": "./src/index.ts",
-  "types": "./src/index.ts",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    }
+  },
   "license": "MIT",
   "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
     "typecheck": "tsc --noEmit"
   },
   "peerDependencies": {
@@ -18,6 +27,12 @@
   },
   "dependencies": {
     "@theguide/models": "workspace:*",
-    "@theguide/utils": "workspace:*"
+    "@theguide/utils": "workspace:*",
+    "@radix-ui/react-label": "^2.0.2",
+    "@radix-ui/react-slot": "^1.0.2",
+    "class-variance-authority": "^0.7.0",
+    "clsx": "^2.1.0",
+    "framer-motion": "^11.0.0",
+    "tailwind-merge": "^2.2.0"
   }
 }
