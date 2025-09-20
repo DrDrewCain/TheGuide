@@ -30,7 +30,17 @@ export async function middleware(request: NextRequest) {
   )
 
   // Refresh session if expired
-  await supabase.auth.getUser()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  // Protected routes
+  if (request.nextUrl.pathname.startsWith('/dashboard') && !user) {
+    return NextResponse.redirect(new URL('/auth', request.url))
+  }
+
+  // Redirect to dashboard if user is logged in and trying to access auth page
+  if (request.nextUrl.pathname === '/auth' && user) {
+    return NextResponse.redirect(new URL('/dashboard', request.url))
+  }
 
   return response
 }

@@ -3,78 +3,41 @@
 import { Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
-import { Button } from '@/components/ui/button'
+import { useState, useEffect } from 'react'
+import { createClient } from '@/lib/supabase/client'
+import { AuthModal } from '@/components/auth/auth-modal'
 
 export default function HomePage() {
-  const [showLogin, setShowLogin] = useState(false)
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
+  const [showAuthModal, setShowAuthModal] = useState(false)
+  const [checkingAuth, setCheckingAuth] = useState(true)
   const router = useRouter()
+  const supabase = createClient()
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
-
-    // Simple demo auth - accept any email/password
-    if (email && password) {
-      localStorage.setItem('user', JSON.stringify({ id: 'demo-user', email }))
-      router.push('/dashboard')
+  useEffect(() => {
+    // Check if user is already logged in
+    const checkUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        router.push('/dashboard')
+      } else {
+        setCheckingAuth(false)
+      }
     }
+    checkUser()
+  }, [router, supabase])
 
-    setIsLoading(false)
+  const handleAuthSuccess = () => {
+    router.push('/dashboard')
   }
 
-  if (showLogin) {
+  if (checkingAuth) {
     return (
-      <main className="min-h-screen bg-gradient-to-br from-primary-50 to-primary-100 flex items-center justify-center p-4">
-        <div className="w-full max-w-md bg-white rounded-lg shadow-xl p-8">
-          <h2 className="text-2xl font-bold text-center mb-6">Sign In</h2>
-          <form onSubmit={handleLogin} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-              <input
-                type="email"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
-              <input
-                type="password"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
-                required
-              />
-            </div>
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Signing in...
-                </>
-              ) : (
-                'Sign In'
-              )}
-            </Button>
-            <p className="text-center text-sm text-gray-600">Demo: Use any email and password</p>
-            <button
-              type="button"
-              onClick={() => setShowLogin(false)}
-              className="w-full text-sm text-gray-600 hover:text-gray-800"
-            >
-              Back to home
-            </button>
-          </form>
-        </div>
-      </main>
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
     )
   }
+
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-primary-50 to-primary-100">
@@ -130,7 +93,7 @@ export default function HomePage() {
 
           <div className="flex gap-4">
             <button
-              onClick={() => setShowLogin(true)}
+              onClick={() => setShowAuthModal(true)}
               className="bg-primary-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-primary-700 transition"
             >
               Start Free Analysis
@@ -193,6 +156,12 @@ export default function HomePage() {
           </div>
         </div>
       </div>
+
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        onSuccess={handleAuthSuccess}
+      />
     </main>
   )
 }
