@@ -7,10 +7,11 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "generate:types": "./scripts/generate-types.sh"
   },
   "dependencies": {
-    "@theguide/models": "workspace:*",
+    "@theguide/models": "wnorkspace:*",
     "@theguide/sdk": "workspace:*",
     "@theguide/ui": "workspace:*",
     "@theguide/utils": "workspace:*",

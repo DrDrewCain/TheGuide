@@ -1,5 +1,5 @@
 import { Decision, DecisionOption, UserProfile } from '@theguide/models';
-import { AIProvider, createAIProvider } from './ai-provider';
+import { AIProvider, createAIProvider } from './ai-provider.js';
 
 interface MCTSNode {
   state: DecisionState;
