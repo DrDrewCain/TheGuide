@@ -4,8 +4,11 @@ import { DecisionAnalysisService } from '@theguide/ai-services';
 
 const router = Router();
 
-// Initialize AI service (in production, use env variable for API key)
-const aiService = new DecisionAnalysisService(process.env.OPENAI_API_KEY || '');
+// Initialize AI service with available provider (Gemini preferred, OpenAI fallback)
+const aiService = new DecisionAnalysisService({
+  geminiKey: process.env.GEMINI_API_KEY,
+  openaiKey: process.env.OPENAI_API_KEY
+});
 
 const analyzeDecisionSchema = z.object({
   description: z.string().min(50).max(2000)

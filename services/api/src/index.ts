@@ -13,6 +13,7 @@ import { authRouter } from './routes/supabase-auth.routes.js';
 import { userRouter } from './routes/supabase-user.routes.js';
 import { decisionRouter } from './routes/supabase-decision.routes.js';
 import { simulationRouter } from './routes/supabase-simulation.routes.js';
+import decisionAnalysisRouter from './routes/decision-analysis.js';
 
 async function bootstrap() {
   // Initialize Express app
@@ -53,6 +54,7 @@ async function bootstrap() {
   app.use('/api/users', userRouter);
   app.use('/api/decisions', decisionRouter);
   app.use('/api/simulations', simulationRouter);
+  app.use('/api/ai', decisionAnalysisRouter);
 
   // Error handling
   app.use(notFoundHandler);

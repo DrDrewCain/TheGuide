@@ -1,5 +1,5 @@
-import OpenAI from 'openai';
 import { Decision, DecisionOption, UserProfile } from '@theguide/models';
+import { AIProvider, createAIProvider } from './ai-provider';
 
 interface MCTSNode {
   state: DecisionState;
@@ -19,35 +19,34 @@ interface DecisionState {
 }
 
 export class DecisionAnalysisService {
-  private openai: OpenAI;
+  private aiProvider: AIProvider;
   private maxDepth = 5;
   private explorationConstant = 1.414;
   private simulationCount = 100;
 
-  constructor(apiKey: string) {
-    this.openai = new OpenAI({ apiKey });
+  constructor(config: { openaiKey?: string; geminiKey?: string } | string) {
+    // Support both old string constructor and new config object
+    if (typeof config === 'string') {
+      this.aiProvider = createAIProvider({ openaiKey: config });
+    } else {
+      this.aiProvider = createAIProvider(config);
+    }
   }
 
   async analyzeUserInput(prompt: string): Promise<any> {
     try {
-      const response = await this.openai.chat.completions.create({
-        model: "gpt-4-turbo-preview",
-        messages: [
-          {
-            role: "system",
-            content: "You are an expert life decision analyst. Extract structured information from user descriptions."
-          },
-          {
-            role: "user",
-            content: prompt
-          }
-        ],
-        temperature: 0.3,
-        max_tokens: 1000,
-        response_format: { type: "json_object" }
-      });
+      const systemPrompt = "You are an expert life decision analyst. Extract structured information from user descriptions.";
 
-      const content = response.choices[0].message.content || "{}";
+      const content = await this.aiProvider.analyzeText(
+        systemPrompt,
+        prompt,
+        {
+          temperature: 0.3,
+          maxTokens: 1000,
+          jsonMode: true
+        }
+      );
+
       return JSON.parse(content);
     } catch (error) {
       console.error('User input analysis error:', error);
@@ -152,26 +151,20 @@ export class DecisionAnalysisService {
     const prompt = this.buildEvaluationPrompt(state);
 
     try {
-      const response = await this.openai.chat.completions.create({
-        model: "gpt-4-turbo-preview",
-        messages: [
-          {
-            role: "system",
-            content: "You are a financial and life decision analyst. Evaluate scenarios and provide numerical scores."
-          },
-          {
-            role: "user",
-            content: prompt
-          }
-        ],
-        temperature: 0.7,
-        max_tokens: 200
-      });
+      const systemPrompt = "You are a financial and life decision analyst. Evaluate scenarios and provide numerical scores.";
 
-      const content = response.choices[0].message.content || "";
+      const content = await this.aiProvider.analyzeText(
+        systemPrompt,
+        prompt,
+        {
+          temperature: 0.7,
+          maxTokens: 200
+        }
+      );
+
       return this.parseScore(content);
     } catch (error) {
-      console.error('OpenAI API error:', error);
+      console.error(`${this.aiProvider.name} API error:`, error);
       return Math.random(); // Fallback to random
     }
   }
@@ -302,24 +295,18 @@ export class DecisionAnalysisService {
     `;
 
     try {
-      const response = await this.openai.chat.completions.create({
-        model: "gpt-4-turbo-preview",
-        messages: [
-          {
-            role: "system",
-            content: "You are a decision analysis expert. Provide actionable insights based on scenario analysis."
-          },
-          {
-            role: "user",
-            content: prompt
-          }
-        ],
-        temperature: 0.3,
-        max_tokens: 500,
-        response_format: { type: "json_object" }
-      });
+      const systemPrompt = "You are a decision analysis expert. Provide actionable insights based on scenario analysis.";
 
-      const content = response.choices[0].message.content || "{}";
+      const content = await this.aiProvider.analyzeText(
+        systemPrompt,
+        prompt,
+        {
+          temperature: 0.3,
+          maxTokens: 500,
+          jsonMode: true
+        }
+      );
+
       return JSON.parse(content);
     } catch (error) {
       console.error('Analysis generation error:', error);

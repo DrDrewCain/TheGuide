@@ -25,6 +25,10 @@ const envSchema = z.object({
   JWT_SECRET: z.string().default('your-secret-key-here'),
   JWT_EXPIRES_IN: z.string().default('7d'),
 
+  // AI APIs (at least one required)
+  GEMINI_API_KEY: z.string().optional(),
+  OPENAI_API_KEY: z.string().optional(),
+
   // External APIs (optional for now)
   PLAID_CLIENT_ID: z.string().optional(),
   PLAID_SECRET: z.string().optional(),

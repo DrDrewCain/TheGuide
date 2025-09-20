@@ -23,6 +23,7 @@
     "clean": "rm -rf dist .turbo"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
     "@theguide/models": "workspace:*",
     "openai": "^4.28.0"
   },

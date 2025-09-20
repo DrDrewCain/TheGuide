@@ -42,6 +42,8 @@ TheGuide_Repository/
 - Bun 1.1+ (package manager and runtime)
 - Node.js 18+ (for compatibility)
 - Xcode 15+ (for iOS app)
+- Redis (for job queue - see Redis Setup below)
+- Podman or Docker (for containerized services)
 
 ### Quick Start
 
@@ -60,6 +62,36 @@ bun run build:web
 
 # Run the API and supporting services
 bun run dev:services
+```
+
+### Redis Setup (Required for API)
+
+The API uses Redis for job queues (simulation processing). You can run Redis using Podman:
+
+```bash
+# Initialize Podman (first time only)
+podman machine init
+podman machine start
+
+# Run Redis container
+podman run -d --name redis-theguide -p 6379:6379 redis:alpine
+
+# Verify Redis is running
+podman exec redis-theguide redis-cli ping
+# Should respond: PONG
+
+# Redis management commands
+podman stop redis-theguide    # Stop Redis
+podman start redis-theguide   # Start Redis
+podman rm redis-theguide      # Remove container
+podman logs redis-theguide    # View logs
+```
+
+Alternatively, you can use Docker or install Redis locally via Homebrew:
+```bash
+# Using Homebrew
+brew install redis
+brew services start redis
 ```
 
 ### Web App
@@ -136,7 +168,8 @@ Shared data models for both platforms:
 - **Simulation Engine (services/sim-engine)**: TypeScript with advanced algorithms
 - **Market Proxy (services/market-proxy)**: Data aggregation service
 - **Database**: PostgreSQL (planned)
-- **Caching**: Redis (planned)
+- **Job Queue**: Redis + Bull (for simulation processing)
+- **Worker**: Background job processor for heavy simulations
 
 ## Development Roadmap
 
