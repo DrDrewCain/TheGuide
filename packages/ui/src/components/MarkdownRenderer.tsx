@@ -25,7 +25,8 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
         setHtml(sanitizedHtml);
       } catch (error) {
         console.error('Error parsing markdown:', error);
-        setHtml(content);
+        // Never inject raw content. Sanitize the fallback as well.
+        setHtml(DOMPurify.sanitize(content));
       }
     };
 
