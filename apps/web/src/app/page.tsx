@@ -86,7 +86,7 @@ export default function HomePage() {
               <span className="gradient-text-accent">Confidence</span>
             </h1>
             <p className="text-xl md:text-2xl text-slate-600 mb-12 max-w-3xl mx-auto leading-relaxed">
-              AI-powered simulations that analyze thousands of scenarios to help you make informed
+              AI-powered Monte-Carlo Simulations that analyze thousands of scenarios to help you make informed
               decisions about your career, relocation, education, and more.
             </p>
           </motion.div>
