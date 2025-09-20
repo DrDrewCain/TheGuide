@@ -37,9 +37,40 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/auth', request.url))
   }
 
-  // Redirect to dashboard if user is logged in and trying to access auth page
-  if (request.nextUrl.pathname === '/auth' && user) {
-    return NextResponse.redirect(new URL('/dashboard', request.url))
+  // Check onboarding status for authenticated users
+  if (user) {
+    // Get user profile to check onboarding status
+    const { data: profile } = await supabase
+      .from('user_profiles')
+      .select('onboarding_completed')
+      .eq('id', user.id)
+      .single()
+
+    const hasCompletedOnboarding = profile?.onboarding_completed || false
+
+    // Check if user needs onboarding when accessing dashboard
+    if (request.nextUrl.pathname.startsWith('/dashboard') && !hasCompletedOnboarding) {
+      return NextResponse.redirect(new URL('/onboarding', request.url))
+    }
+
+    // If user completed onboarding, don't let them go back
+    if (request.nextUrl.pathname === '/onboarding' && hasCompletedOnboarding) {
+      return NextResponse.redirect(new URL('/dashboard', request.url))
+    }
+
+    // Redirect from auth page based on onboarding status
+    if (request.nextUrl.pathname === '/auth') {
+      if (!hasCompletedOnboarding) {
+        return NextResponse.redirect(new URL('/onboarding', request.url))
+      } else {
+        return NextResponse.redirect(new URL('/dashboard', request.url))
+      }
+    }
+  }
+
+  // Allow access to onboarding only for logged in users
+  if (request.nextUrl.pathname === '/onboarding' && !user) {
+    return NextResponse.redirect(new URL('/', request.url))
   }
 
   return response

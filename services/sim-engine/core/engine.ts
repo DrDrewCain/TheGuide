@@ -686,7 +686,7 @@ export class SimulationEngine {
       })
 
       enriched.career = enriched.career || {}
-      enriched.career.salary = salaryData.median !== undefined ? salaryData.median : salaryData.likely
+      enriched.career.salary = salaryData.median
     }
 
     // Apply intelligent defaults
