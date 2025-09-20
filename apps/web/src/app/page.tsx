@@ -6,16 +6,16 @@ import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { AuthModal } from '@/components/auth/auth-modal'
-import { GuestPrompt, AnimatedCard, Button } from '@theguide/ui'
-import { useState as useGuestState } from 'react'
+import { Header } from '@/components/layout/header'
+import { GuestPrompt, Button } from '@theguide/ui'
 import { motion } from 'framer-motion'
 import { ArrowRight, Sparkles, TrendingUp, Shield, Brain } from 'lucide-react'
 
 export default function HomePage() {
   const [showAuthModal, setShowAuthModal] = useState(false)
   const [checkingAuth, setCheckingAuth] = useState(true)
-  const [guestPrompt, setGuestPrompt] = useGuestState('')
-  const [isAnalyzing, setIsAnalyzing] = useGuestState(false)
+  const [guestPrompt, setGuestPrompt] = useState('')
+  const [isAnalyzing, setIsAnalyzing] = useState(false)
   const router = useRouter()
   const supabase = createClient()
 
@@ -30,7 +30,7 @@ export default function HomePage() {
       }
     }
     checkUser()
-  }, [router, supabase])
+  }, [router])
 
   const handleAuthSuccess = () => {
     router.push('/dashboard')
@@ -58,8 +58,10 @@ export default function HomePage() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-white to-slate-50 overflow-x-hidden">
-      <div className="container-responsive py-20 md:py-24">
+    <>
+      <Header />
+      <main id="main-content" className="min-h-screen bg-gradient-to-b from-white to-slate-50 overflow-x-hidden">
+        <div className="container-responsive py-20 md:py-24">
         {/* Hero Section */}
         <div className="max-w-5xl mx-auto">
           <motion.div
@@ -145,15 +147,26 @@ export default function HomePage() {
               variant="primary"
               size="xl"
               onClick={() => setShowAuthModal(true)}
-              className="min-w-[200px]"
+              className="min-w-[240px]"
+              aria-label="Get started with TheGuide - Sign up or log in"
             >
-              Start Free Analysis
+              Get Started - It's Free
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
             <Button variant="secondary" size="xl" className="min-w-[200px]" asChild>
               <Link href="/how-it-works">How It Works</Link>
             </Button>
           </motion.div>
+
+          {/* Descriptive text for CTA */}
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.7, duration: 0.6 }}
+            className="text-center text-sm text-slate-600 -mt-12 mb-20"
+          >
+            Sign up or log in to begin your personalized analysis
+          </motion.p>
 
           {/* How It Works Section */}
           <motion.div
@@ -211,11 +224,12 @@ export default function HomePage() {
         </div>
       </div>
 
-      <AuthModal
-        isOpen={showAuthModal}
-        onClose={() => setShowAuthModal(false)}
-        onSuccess={handleAuthSuccess}
-      />
-    </main>
+        <AuthModal
+          isOpen={showAuthModal}
+          onClose={() => setShowAuthModal(false)}
+          onSuccess={handleAuthSuccess}
+        />
+      </main>
+    </>
   )
 }

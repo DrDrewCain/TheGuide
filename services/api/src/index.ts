@@ -50,10 +50,14 @@ async function bootstrap() {
     message: 'Too many requests from this IP, please try again later.',
   })
 
+  // API Routes
+  // Health check endpoint (no rate limiting needed for monitoring)
+  app.use('/health', healthRouter)
+
+  // Apply rate limiting to all API routes
   app.use('/api/', limiter)
 
-  // API Routes
-  app.use('/health', healthRouter)
+  // Protected API routes
   app.use('/api/auth', authRouter)
   app.use('/api/users', userRouter)
   app.use('/api/decisions', decisionRouter)
