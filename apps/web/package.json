@@ -11,7 +11,7 @@
     "generate:types": "./scripts/generate-types.sh"
   },
   "dependencies": {
-    "@theguide/models": "wnorkspace:*",
+    "@theguide/models": "workspace:*",
     "@theguide/sdk": "workspace:*",
     "@theguide/ui": "workspace:*",
     "@theguide/utils": "workspace:*",
