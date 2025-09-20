@@ -25,6 +25,7 @@ import {
   Calendar
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
+import { Header } from '@/components/layout/header';
 
 function DashboardContent() {
   const router = useRouter();
@@ -112,25 +113,27 @@ function DashboardContent() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
-      {/* Header */}
-      <div className="border-b border-slate-200 bg-white/80 backdrop-blur-sm sticky top-0 z-10">
-        <div className="container-responsive py-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-slate-900">Welcome back!</h1>
-              <p className="text-slate-600 mt-1">Here's your decision-making overview</p>
+    <>
+      <Header />
+      <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
+        {/* Page Header */}
+        <div className="border-b border-slate-200 bg-white/80 backdrop-blur-sm">
+          <div className="container-responsive py-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-3xl font-bold text-slate-900">Welcome back!</h1>
+                <p className="text-slate-600 mt-1">Here's your decision-making overview</p>
+              </div>
+              <Button variant="primary" size="lg" onClick={() => setShowDecisionPrompt(!showDecisionPrompt)}>
+                <Plus className="w-5 h-5 mr-2" />
+                New Decision
+              </Button>
             </div>
-            <Button variant="primary" size="lg" onClick={() => setShowDecisionPrompt(!showDecisionPrompt)}>
-              <Plus className="w-5 h-5 mr-2" />
-              New Decision
-            </Button>
           </div>
         </div>
-      </div>
 
-      {/* Main Content */}
-      <div className="container-responsive py-8">
+        {/* Main Content */}
+        <main id="main-content" className="container-responsive py-8">
         {/* Quick Decision Input */}
         {showDecisionPrompt && (
           <motion.div
@@ -322,8 +325,9 @@ function DashboardContent() {
             </DashboardCard>
           </motion.div>
         </div>
-      </div>
+      </main>
     </div>
+  </>
   );
 }
 

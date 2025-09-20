@@ -20,18 +20,12 @@ export function CleanCursor({ children, className }: CleanCursorProps) {
       cursorX.set(e.clientX);
       cursorY.set(e.clientY);
 
-      // Check if hovering over interactive elements
+      // Check if hovering over interactive elements (selector-based; avoids layout thrash)
       const target = e.target as HTMLElement;
-      const isInteractive = Boolean(
-        target.tagName === 'BUTTON' ||
-        target.tagName === 'A' ||
-        target.tagName === 'INPUT' ||
-        target.tagName === 'TEXTAREA' ||
-        target.closest('button') ||
-        target.closest('a') ||
-        target.getAttribute('role') === 'button' ||
-        window.getComputedStyle(target).cursor === 'pointer'
+      const interactiveEl = target.closest(
+        'button, a, input, textarea, [role="button"], [data-cursor-style="pointer"]'
       );
+      const isInteractive = Boolean(interactiveEl);
 
       setIsPointer(isInteractive);
     };

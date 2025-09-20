@@ -79,18 +79,11 @@ export function MagneticCursor({ children, className }: MagneticCursorProps) {
         setCursorText('');
       }
 
-      // Determine if element is interactive
-      const isInteractive = Boolean(
-        target.tagName === 'BUTTON' ||
-        target.tagName === 'A' ||
-        target.tagName === 'INPUT' ||
-        target.tagName === 'TEXTAREA' ||
-        target.closest('button') ||
-        target.closest('a') ||
-        target.getAttribute('role') === 'button' ||
-        window.getComputedStyle(target).cursor === 'pointer' ||
-        cursorStyle === 'pointer'
+      // Determine if element is interactive (selector-based; avoids layout thrash)
+      const interactiveEl = target.closest(
+        'button, a, input, textarea, [role="button"], [data-cursor-style="pointer"], [data-cursor-text]'
       );
+      const isInteractive = Boolean(interactiveEl) || cursorStyle === 'pointer';
 
       // Apply magnetic effect for buttons
       if (isInteractive) {
@@ -117,8 +110,11 @@ export function MagneticCursor({ children, className }: MagneticCursorProps) {
       cursorSize.set(isInteractive ? 8 : cursorStyle === 'large' ? 40 : 20);
     };
 
-    const handleMouseEnter = () => setIsVisible(true);
-    const handleMouseLeave = () => setIsVisible(false);
+    const handlePointerOver = () => setIsVisible(true);
+    const handlePointerOut = (e: PointerEvent) => {
+      // relatedTarget === null => left the window
+      if (!e.relatedTarget) setIsVisible(false);
+    };
 
     let frameRequested = false;
     let lastEvent: MouseEvent | null = null;
@@ -134,16 +130,16 @@ export function MagneticCursor({ children, className }: MagneticCursorProps) {
     };
 
     document.addEventListener('mousemove', rafMove, { passive: true });
-    document.addEventListener('mouseenter', handleMouseEnter, { passive: true });
-    document.addEventListener('mouseleave', handleMouseLeave, { passive: true });
+    window.addEventListener('pointerover', handlePointerOver, { passive: true });
+    window.addEventListener('pointerout', handlePointerOut, { passive: true });
 
     // Set initial visibility
     setIsVisible(true);
 
     return () => {
       document.removeEventListener('mousemove', rafMove);
-      document.removeEventListener('mouseenter', handleMouseEnter);
-      document.removeEventListener('mouseleave', handleMouseLeave);
+      window.removeEventListener('pointerover', handlePointerOver);
+      window.removeEventListener('pointerout', handlePointerOut);
     };
   }, [cursorX, cursorY, cursorSize]);
 
