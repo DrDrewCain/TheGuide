@@ -17,25 +17,28 @@
     "typecheck": "tsc --noEmit"
   },
   "peerDependencies": {
-    "react": "^18.0.0",
-    "react-dom": "^18.0.0"
+    "react": ">=18.3.1 <19",
+    "react-dom": ">=18.3.1 <19"
   },
   "devDependencies": {
-    "@types/react": "^18.0.0",
-    "@types/react-dom": "^18.0.0",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
     "typescript": "^5.0.0"
   },
   "dependencies": {
     "@radix-ui/react-label": "^2.0.2",
     "@radix-ui/react-slot": "^1.0.2",
+    "@radix-ui/react-tooltip": "^1.2.8",
     "@theguide/models": "workspace:*",
     "@theguide/utils": "workspace:*",
     "@types/dompurify": "^3.0.0",
     "@types/marked": "^6.0.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
-    "isomorphic-dompurify": "^2.13.0",
     "framer-motion": "^11.0.0",
+    "isomorphic-dompurify": "^2.13.0",
     "marked": "^16.3.0",
     "tailwind-merge": "^2.2.0"
   }

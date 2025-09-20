@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { DecisionAnalysisService } from '@theguide/ai-services';
+import { Decision, UserProfile } from '@theguide/models';
 import { authenticateSupabase } from '../middleware/supabase-auth.middleware.js';
 
 const router = Router();
@@ -75,22 +76,44 @@ router.post('/analyze-decision', authenticateSupabase, async (req, res) => {
 // Schema for simulate-with-ai endpoint
 const simulateWithAISchema = z.object({
   decision: z.object({
-    type: z.string(),
+    type: z.enum([
+      'career',
+      'career_change',
+      'job_offer',
+      'relocation',
+      'education',
+      'housing',
+      'home_purchase',
+      'investment',
+      'family',
+      'family_planning',
+      'retirement',
+      'business',
+      'business_startup'
+    ]),
     title: z.string(),
     description: z.string(),
     options: z.array(z.object({
+      id: z.string().optional(),
       title: z.string(),
       description: z.string(),
       pros: z.array(z.string()),
-      cons: z.array(z.string())
+      cons: z.array(z.string()),
+      parameters: z.record(z.any()).optional(),
+      estimatedImpact: z.any().optional(),
+      requirements: z.array(z.any()).optional()
     })),
     parameters: z.record(z.any())
   }),
   option: z.object({
+    id: z.string().optional(),
     title: z.string(),
     description: z.string(),
     pros: z.array(z.string()),
-    cons: z.array(z.string())
+    cons: z.array(z.string()),
+    parameters: z.record(z.any()).optional(),
+    estimatedImpact: z.any().optional(),
+    requirements: z.array(z.any()).optional()
   }),
   profile: z.object({
     demographics: z.object({
@@ -116,8 +139,83 @@ router.post('/simulate-with-ai', authenticateSupabase, async (req, res) => {
     const validatedData = simulateWithAISchema.parse(req.body);
     const { decision, option, profile } = validatedData;
 
+    // Ensure all options have required fields
+    const fullOptions = decision.options.map((opt, idx) => ({
+      ...opt,
+      id: opt.id || `option-${idx}`,
+      parameters: opt.parameters || {},
+      estimatedImpact: opt.estimatedImpact || {
+        financial: {
+          immediate: 0,
+          year1: 0,
+          year5: 0,
+          year10: 0
+        },
+        career: {
+          growthPotential: 5,
+          skillDevelopment: 5,
+          networkExpansion: 5
+        },
+        lifestyle: {
+          workLifeBalance: 0,
+          stress: 0,
+          fulfillment: 0
+        },
+        family: {
+          timeWithFamily: 0,
+          familyStability: 0
+        }
+      },
+      requirements: opt.requirements || []
+    }));
+
+    // Create a full Decision object with required fields
+    const fullDecision: Decision = {
+      ...decision,
+      id: `temp-${Date.now()}`,
+      userId: 'guest',
+      status: 'analyzing',
+      options: fullOptions,
+      constraints: [],
+      timeline: {
+        createdAt: new Date(),
+        decisionDeadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
+        implementationDate: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000), // 60 days
+      }
+    };
+
+    // Create a full DecisionOption object with required fields
+    const fullOption = {
+      ...option,
+      id: option.id || `option-${Date.now()}`,
+      parameters: option.parameters || {},
+      estimatedImpact: option.estimatedImpact || {
+        financial: {
+          immediate: 0,
+          year1: 0,
+          year5: 0,
+          year10: 0
+        },
+        career: {
+          growthPotential: 5,
+          skillDevelopment: 5,
+          networkExpansion: 5
+        },
+        lifestyle: {
+          workLifeBalance: 0,
+          stress: 0,
+          fulfillment: 0
+        },
+        family: {
+          timeWithFamily: 0,
+          familyStability: 0
+        }
+      },
+      requirements: option.requirements || []
+    };
+
     // Run AI-enhanced analysis
-    const result = await aiService.analyzeDecision(decision, option, profile);
+    const result = await aiService.analyzeDecision(fullDecision, fullOption, profile as Partial<UserProfile>);
 
     res.json(result);
   } catch (error) {

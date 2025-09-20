@@ -9,7 +9,9 @@ import {
   OnboardingStep,
   AnimatedCard,
   SuggestionChip,
-  InteractiveDemo
+  InteractiveDemo,
+  useToast,
+  Celebration
 } from '@theguide/ui';
 import { createClient } from '@/lib/supabase/client';
 import { ArrowRight, Briefcase, DollarSign, Home, Search } from 'lucide-react';
@@ -41,7 +43,10 @@ const TOTAL_STEPS = 5;
  */
 export default function OnboardingPage() {
   const router = useRouter();
+  const { addToast } = useToast();
   const [currentStep, setCurrentStep] = useState(1);
+  const [showCelebration, setShowCelebration] = useState(false);
+  const [celebrationMessage, setCelebrationMessage] = useState('');
   const [userPreferences, setUserPreferences] = useState({
     primaryConcern: '',
     decisionType: ''
@@ -59,13 +64,36 @@ export default function OnboardingPage() {
     };
 
     checkAuth();
-  }, [router]);
+
+    // Check for auth success cookie and show toast
+    const showAuthSuccess = document.cookie
+      .split('; ')
+      .find(row => row.startsWith('show_auth_success='));
+
+    if (showAuthSuccess) {
+      // Remove the cookie
+      document.cookie = 'show_auth_success=; Max-Age=0; path=/;';
+
+      // Show success toast
+      addToast({
+        title: 'Welcome to TheGuide!',
+        description: 'Your email has been confirmed. Let\'s get started!',
+        type: 'success',
+        duration: 5000
+      });
+    }
+  }, [router, addToast]);
 
   /**
    * Handles navigation to the next step or completes onboarding
    */
   const handleNext = () => {
     if (currentStep < TOTAL_STEPS) {
+      // Show celebration for completing interactive demo (step 3)
+      if (currentStep === 3) {
+        setCelebrationMessage("Amazing! You completed the demo!");
+        setShowCelebration(true);
+      }
       setCurrentStep(currentStep + 1);
     } else {
       completeOnboarding();
@@ -157,17 +185,25 @@ export default function OnboardingPage() {
   };
 
   return (
-    <OnboardingContainer
-      currentStep={currentStep}
-      totalSteps={TOTAL_STEPS}
-      onSkip={handleSkip}
-      onComplete={completeOnboarding}
-      className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50"
-    >
-      <AnimatePresence mode="wait">
-        {renderStep()}
-      </AnimatePresence>
-    </OnboardingContainer>
+    <>
+      <OnboardingContainer
+        currentStep={currentStep}
+        totalSteps={TOTAL_STEPS}
+        onSkip={handleSkip}
+        onComplete={completeOnboarding}
+        className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50"
+      >
+        <AnimatePresence mode="wait">
+          {renderStep()}
+        </AnimatePresence>
+      </OnboardingContainer>
+
+      <Celebration
+        show={showCelebration}
+        message={celebrationMessage}
+        onComplete={() => setShowCelebration(false)}
+      />
+    </>
   );
 }
 

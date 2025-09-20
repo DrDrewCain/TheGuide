@@ -16,6 +16,8 @@ export default function HomePage() {
   const [checkingAuth, setCheckingAuth] = useState(true)
   const [guestPrompt, setGuestPrompt] = useState('')
   const [isAnalyzing, setIsAnalyzing] = useState(false)
+  const [examples, setExamples] = useState<any[]>([])
+  const [showExamples, setShowExamples] = useState(false)
   const router = useRouter()
   const supabase = createClient()
 
@@ -27,16 +29,34 @@ export default function HomePage() {
         router.push('/dashboard')
       } else {
         setCheckingAuth(false)
+        // Fetch example scenarios
+        fetchExamples()
       }
     }
     checkUser()
   }, [router])
+
+  const fetchExamples = async () => {
+    try {
+      const response = await fetch('/api/guest/analyze')
+      const data = await response.json()
+      setExamples(data.examples || [])
+    } catch (error) {
+      console.error('Failed to fetch examples:', error)
+    }
+  }
 
   const handleAuthSuccess = () => {
     router.push('/dashboard')
   }
 
   const handleGuestPrompt = async (prompt: string) => {
+    // Validate prompt length
+    if (prompt.length < 10) {
+      console.error('Prompt too short:', prompt.length)
+      return
+    }
+
     setGuestPrompt(prompt)
     setIsAnalyzing(true)
 
@@ -98,7 +118,7 @@ export default function HomePage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2, duration: 0.6 }}
-            className="mb-20"
+            className="mb-12"
           >
             <GuestPrompt
               onSubmit={handleGuestPrompt}
@@ -106,6 +126,64 @@ export default function HomePage() {
               className="max-w-3xl mx-auto"
             />
           </motion.div>
+
+          {/* Example Scenarios */}
+          {examples.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3, duration: 0.6 }}
+              className="mb-20"
+            >
+              <div className="text-center mb-6">
+                <button
+                  onClick={() => setShowExamples(!showExamples)}
+                  className="text-sm text-slate-600 hover:text-slate-900 transition-colors"
+                >
+                  {showExamples ? 'Hide' : 'Show'} example scenarios
+                </button>
+              </div>
+
+              {showExamples && (
+                <div className="grid md:grid-cols-2 gap-4 max-w-3xl mx-auto">
+                  {examples.map((example) => (
+                    <motion.button
+                      key={example.id}
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      whileHover={{ scale: 1.02 }}
+                      onClick={() => {
+                        const input = document.querySelector('textarea') as HTMLTextAreaElement;
+                        if (input) {
+                          input.value = example.prompt;
+                          input.dispatchEvent(new Event('input', { bubbles: true }));
+                          setShowExamples(false);
+                        }
+                      }}
+                      className="card p-4 text-left hover:shadow-md transition-all duration-200 group"
+                    >
+                      <h4 className="font-semibold text-slate-900 mb-2 group-hover:text-[#b4e300] transition-colors">
+                        {example.title}
+                      </h4>
+                      <p className="text-sm text-slate-600 mb-3 line-clamp-2">
+                        {example.prompt}
+                      </p>
+                      <div className="flex gap-2 flex-wrap">
+                        {example.tags.map((tag: string) => (
+                          <span
+                            key={tag}
+                            className="text-xs px-2 py-1 bg-slate-100 text-slate-600 rounded-full"
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    </motion.button>
+                  ))}
+                </div>
+              )}
+            </motion.div>
+          )}
 
           {/* Stats Section */}
           <motion.div
