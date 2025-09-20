@@ -150,15 +150,41 @@ CREATE POLICY "Users can update simulations of own decisions" ON public.simulati
 
 -- 7. Set search_path for all functions
 -- Update existing functions to have explicit search_path
-ALTER FUNCTION public.update_decision_search_vector() SET search_path = public, pg_catalog;
-ALTER FUNCTION public.update_updated_at_column() SET search_path = public, pg_catalog;
-ALTER FUNCTION public.handle_new_user() SET search_path = public, pg_catalog;
-ALTER FUNCTION public.clean_expired_cache() SET search_path = public, pg_catalog;
-ALTER FUNCTION public.get_recent_decisions(p_user_id uuid, p_limit integer) SET search_path = public, pg_catalog;
-ALTER FUNCTION public.validate_decision_options() SET search_path = public, pg_catalog;
-ALTER FUNCTION public.check_decision_limit() SET search_path = public, pg_catalog;
-ALTER FUNCTION public.refresh_decision_analytics() SET search_path = public, pg_catalog;
-ALTER FUNCTION public.audit_trigger_function() SET search_path = public, pg_catalog;
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_proc WHERE proname = 'update_decision_search_vector' AND pg_function_is_visible(oid)) THEN
+    EXECUTE 'ALTER FUNCTION public.update_decision_search_vector() SET search_path = public, pg_catalog';
+  END IF;
+  IF EXISTS (SELECT 1 FROM pg_proc WHERE proname = 'update_updated_at_column' AND pg_function_is_visible(oid)) THEN
+    EXECUTE 'ALTER FUNCTION public.update_updated_at_column() SET search_path = public, pg_catalog';
+  END IF;
+  IF EXISTS (SELECT 1 FROM pg_proc WHERE proname = 'handle_new_user' AND pg_function_is_visible(oid)) THEN
+    EXECUTE 'ALTER FUNCTION public.handle_new_user() SET search_path = public, pg_catalog';
+  END IF;
+  IF EXISTS (SELECT 1 FROM pg_proc WHERE proname = 'clean_expired_cache' AND pg_function_is_visible(oid)) THEN
+    EXECUTE 'ALTER FUNCTION public.clean_expired_cache() SET search_path = public, pg_catalog';
+  END IF;
+  IF EXISTS (
+    SELECT 1 FROM pg_proc
+    WHERE proname = 'get_recent_decisions'
+      AND pg_function_is_visible(oid)
+      AND proargtypes = ARRAY['uuid'::regtype::oid, 'integer'::regtype::oid]
+  ) THEN
+    EXECUTE 'ALTER FUNCTION public.get_recent_decisions(p_user_id uuid, p_limit integer) SET search_path = public, pg_catalog';
+  END IF;
+  IF EXISTS (SELECT 1 FROM pg_proc WHERE proname = 'validate_decision_options' AND pg_function_is_visible(oid)) THEN
+    EXECUTE 'ALTER FUNCTION public.validate_decision_options() SET search_path = public, pg_catalog';
+  END IF;
+  IF EXISTS (SELECT 1 FROM pg_proc WHERE proname = 'check_decision_limit' AND pg_function_is_visible(oid)) THEN
+    EXECUTE 'ALTER FUNCTION public.check_decision_limit() SET search_path = public, pg_catalog';
+  END IF;
+  IF EXISTS (SELECT 1 FROM pg_proc WHERE proname = 'refresh_decision_analytics' AND pg_function_is_visible(oid)) THEN
+    EXECUTE 'ALTER FUNCTION public.refresh_decision_analytics() SET search_path = public, pg_catalog';
+  END IF;
+  IF EXISTS (SELECT 1 FROM pg_proc WHERE proname = 'audit_trigger_function' AND pg_function_is_visible(oid)) THEN
+    EXECUTE 'ALTER FUNCTION public.audit_trigger_function() SET search_path = public, pg_catalog';
+  END IF;
+END $$;
 
 -- 8. Add RLS policies for market_data_cache if not exists
 -- This table should have policies if it's exposed to the API

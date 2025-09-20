@@ -26,12 +26,13 @@ export function SuggestionChip({
         'inline-flex items-center gap-2 px-4 py-2 rounded-full',
         'bg-gray-100 hover:bg-gray-200 text-gray-700',
         'transition-colors duration-200 text-sm font-medium',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-slate-500',
         className
       )}
       onClick={onClick}
       disabled={disabled}
     >
-      {icon && <span className="text-lg">{icon}</span>}
+      {icon && <span className="text-lg" aria-hidden="true">{icon}</span>}
       {children}
     </motion.button>
   );

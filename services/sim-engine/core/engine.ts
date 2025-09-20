@@ -144,7 +144,7 @@ export class SimulationEngine {
       unemploymentRate = rng.normal(3, 0.5)
     }
 
-    const industryOutlook = SimulationEngine.determineIndustryOutlook(marketCondition)
+    const industryOutlook = SimulationEngine.determineIndustryOutlook(marketCondition, rng)
 
     return {
       gdpGrowth,
@@ -234,7 +234,7 @@ export class SimulationEngine {
 
     // Investment returns on investable assets only
     const investableAssets =
-      previousFinancials.netWorth - (userProfile.financial.assets.cash || 20000)
+      previousFinancials.netWorth - (userProfile.financial.assets.cash ?? 20000)
     const baseReturn = this.calculateInvestmentReturn(economicConditions, rng)
 
     // Add market volatility
@@ -542,9 +542,10 @@ export class SimulationEngine {
   }
 
   private static determineIndustryOutlook(
-    marketCondition: EconomicConditions['marketCondition']
+    marketCondition: EconomicConditions['marketCondition'],
+    rng: RNG
   ): EconomicConditions['industryOutlook'] {
-    const rand = Math.random()
+    const rand = rng.uniform(0, 1)
     switch (marketCondition) {
       case 'recession':
         return rand < 0.7 ? 'declining' : 'stable'
@@ -686,7 +687,16 @@ export class SimulationEngine {
       })
 
       enriched.career = enriched.career || {}
-      enriched.career.salary = salaryData.median
+      const median = salaryData?.median
+      if (typeof median === 'number' && Number.isFinite(median)) {
+        enriched.career.salary = median
+        if (!enriched.career.compensation || enriched.career.compensation.base == null) {
+          enriched.career.compensation = {
+            ...(enriched.career.compensation || {}),
+            base: median,
+          }
+        }
+      }
     }
 
     // Apply intelligent defaults
@@ -817,7 +827,7 @@ export class SimulationEngine {
         if (this.isObject(source[key])) {
           if (!(key in target)) Object.assign(output, { [key]: source[key] })
           else output[key] = this.deepMerge(target[key], source[key])
-        } else {
+        } else if (source[key] !== undefined) {
           Object.assign(output, { [key]: source[key] })
         }
       })
@@ -846,7 +856,7 @@ export class SimulationEngine {
     const impact = option.estimatedImpact
 
     // Handle both flat and nested impact structures
-    if (typeof impact === 'object' && 'lifestyle' in impact) {
+    if (impact && typeof impact === 'object' && 'lifestyle' in impact) {
       return impact
     }
 
@@ -937,7 +947,7 @@ export class SimulationEngine {
     // Market-based events
     if (economicConditions.marketCondition === 'recession' && rng.uniform(0, 1) < 0.3) {
       events.push({
-        year: Math.floor(rng.uniform(1, 10)),
+        year: Math.floor(rng.uniform(1, 11)),
         type: 'market_crash',
         description: 'Major market downturn affecting investments',
         impact: 'negative',

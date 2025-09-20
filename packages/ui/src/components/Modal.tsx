@@ -22,20 +22,20 @@ export function Modal({
   showCloseButton = true
 }: ModalProps) {
   useEffect(() => {
+    // Capture and restore the previous value (works with nested modals)
+    const previous = document.body.style.overflow
     if (isOpen) {
       document.body.style.overflow = 'hidden'
-    } else {
-      document.body.style.overflow = 'unset'
     }
-
     return () => {
-      document.body.style.overflow = 'unset'
+      document.body.style.overflow = previous || ''
     }
   }, [isOpen])
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
+      if (e.key === 'Escape' && !e.defaultPrevented) {
+        e.stopPropagation()
         onClose()
       }
     }
@@ -53,7 +53,7 @@ export function Modal({
     md: 'max-w-md',
     lg: 'max-w-lg',
     xl: 'max-w-xl'
-  }
+  } as const
 
   return (
     <div className="fixed inset-0 z-50 overflow-auto">
@@ -63,9 +63,16 @@ export function Modal({
       />
 
       <div className="flex min-h-full items-center justify-center p-4">
-        <div className={`relative bg-white rounded-lg shadow-xl w-full ${sizeClasses[size]} transform transition-all`}>
+        <div
+          className={`relative bg-white rounded-lg shadow-xl w-full ${sizeClasses[size]} transform transition-all`}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby={title ? 'modal-title' : undefined}
+          aria-label={title ? undefined : 'Modal'}
+        >
           {showCloseButton && (
             <button
+              type="button"
               onClick={onClose}
               className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
               aria-label="Close modal"
@@ -76,7 +83,7 @@ export function Modal({
 
           {title && (
             <div className="border-b px-6 py-4">
-              <h2 className="text-xl font-semibold">{title}</h2>
+              <h2 id="modal-title" className="text-xl font-semibold">{title}</h2>
             </div>
           )}
 

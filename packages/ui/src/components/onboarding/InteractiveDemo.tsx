@@ -12,6 +12,7 @@ export interface InteractiveDemoProps {
 export function InteractiveDemo({ onComplete, className }: InteractiveDemoProps) {
   const [stage, setStage] = React.useState<'intro' | 'input' | 'simulating' | 'results'>('intro');
   const [simulationProgress, setSimulationProgress] = React.useState(0);
+  const intervalRef = React.useRef<ReturnType<typeof setInterval> | null>(null);
 
   const demoDecision = {
     title: "Should I move to Austin for a tech job?",
@@ -26,13 +27,18 @@ export function InteractiveDemo({ onComplete, className }: InteractiveDemoProps)
   };
 
   const runSimulation = () => {
+    setSimulationProgress(0);
     setStage('simulating');
 
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+    }
+
     // Simulate progress
-    const interval = setInterval(() => {
+    intervalRef.current = setInterval(() => {
       setSimulationProgress(prev => {
         if (prev >= 100) {
-          clearInterval(interval);
+          if (intervalRef.current) clearInterval(intervalRef.current);
           setTimeout(() => {
             setStage('results');
           }, 500);
@@ -48,6 +54,12 @@ export function InteractiveDemo({ onComplete, className }: InteractiveDemoProps)
       onComplete();
     }
   };
+
+  React.useEffect(() => {
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, []);
 
   return (
     <div className={cn('w-full max-w-2xl mx-auto', className)}>

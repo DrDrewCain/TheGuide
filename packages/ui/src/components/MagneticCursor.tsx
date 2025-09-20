@@ -94,15 +94,28 @@ export function MagneticCursor({ children, className }: MagneticCursorProps) {
     const handleMouseEnter = () => setIsVisible(true);
     const handleMouseLeave = () => setIsVisible(false);
 
-    document.addEventListener('mousemove', moveCursor);
-    document.addEventListener('mouseenter', handleMouseEnter);
-    document.addEventListener('mouseleave', handleMouseLeave);
+    let frameRequested = false;
+    let lastEvent: MouseEvent | null = null;
+    const rafMove = (e: MouseEvent) => {
+      lastEvent = e;
+      if (!frameRequested) {
+        frameRequested = true;
+        requestAnimationFrame(() => {
+          if (lastEvent) moveCursor(lastEvent);
+          frameRequested = false;
+        });
+      }
+    };
+
+    document.addEventListener('mousemove', rafMove, { passive: true });
+    document.addEventListener('mouseenter', handleMouseEnter, { passive: true });
+    document.addEventListener('mouseleave', handleMouseLeave, { passive: true });
 
     // Set initial visibility
     setIsVisible(true);
 
     return () => {
-      document.removeEventListener('mousemove', moveCursor);
+      document.removeEventListener('mousemove', rafMove);
       document.removeEventListener('mouseenter', handleMouseEnter);
       document.removeEventListener('mouseleave', handleMouseLeave);
     };

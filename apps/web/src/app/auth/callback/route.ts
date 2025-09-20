@@ -7,14 +7,20 @@ export async function GET(request: Request) {
 
   if (code) {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.exchangeCodeForSession(code)
+    const { data: { session }, error } = await supabase.auth.exchangeCodeForSession(code)
+
+    if (error) {
+      console.error('Error exchanging code for session:', error)
+      return NextResponse.redirect(new URL('/auth?error=auth_failed', requestUrl.origin))
+    }
 
     // Check if user has completed onboarding
-    if (user) {
+    const userId = session?.user?.id
+    if (userId) {
       const { data: profile } = await supabase
         .from('user_profiles')
         .select('onboarding_completed')
-        .eq('id', user.id)
+        .eq('id', userId)
         .single()
 
       const hasCompletedOnboarding = profile?.onboarding_completed || false
