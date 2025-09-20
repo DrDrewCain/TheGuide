@@ -39,14 +39,33 @@ export async function middleware(request: NextRequest) {
 
   // Check onboarding status for authenticated users
   if (user) {
-    // Get user profile to check onboarding status
-    const { data: profile } = await supabase
-      .from('user_profiles')
-      .select('onboarding_completed')
-      .eq('id', user.id)
-      .single()
+    // Try to get onboarding status from cookie for performance
+    let hasCompletedOnboarding: boolean
+    const onboardingCookie = request.cookies.get('onboarding_completed')
 
-    const hasCompletedOnboarding = profile?.onboarding_completed || false
+    if (onboardingCookie) {
+      hasCompletedOnboarding = onboardingCookie.value === 'true'
+    } else {
+      // Get user profile to check onboarding status
+      const { data: profile } = await supabase
+        .from('user_profiles')
+        .select('onboarding_completed')
+        .eq('id', user.id)
+        .single()
+
+      hasCompletedOnboarding = profile?.onboarding_completed || false
+
+      // Cache onboarding status in cookie for future requests
+      response.cookies.set({
+        name: 'onboarding_completed',
+        value: hasCompletedOnboarding.toString(),
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        path: '/',
+        maxAge: 60 * 60 * 24 // 1 day cache
+      })
+    }
 
     // Check if user needs onboarding when accessing dashboard
     if (request.nextUrl.pathname.startsWith('/dashboard') && !hasCompletedOnboarding) {

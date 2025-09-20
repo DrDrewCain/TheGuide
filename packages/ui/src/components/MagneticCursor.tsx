@@ -67,9 +67,10 @@ export function MagneticCursor({ children, className }: MagneticCursorProps) {
       );
 
       // Apply magnetic effect for buttons
-      if (isInteractive && (target.tagName === 'BUTTON' || target.closest('button'))) {
-        const rect = (target.tagName === 'BUTTON' ? target : target.closest('button')!)?.getBoundingClientRect();
-        if (rect) {
+      if (isInteractive) {
+        const buttonElement = target.tagName === 'BUTTON' ? target : target.closest('button');
+        if (buttonElement) {
+          const rect = buttonElement.getBoundingClientRect();
           const centerX = rect.left + rect.width / 2;
           const centerY = rect.top + rect.height / 2;
           const distX = x - centerX;

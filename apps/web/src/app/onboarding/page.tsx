@@ -14,6 +14,11 @@ import {
 import { createClient } from '@/lib/supabase/client';
 import { ArrowRight, Briefcase, DollarSign, Home, Search } from 'lucide-react';
 
+// Postgres error codes
+const POSTGRES_ERROR_CODES = {
+  NO_ROWS_FOUND: 'PGRST116' // Returned when no rows match the query
+} as const;
+
 const TOTAL_STEPS = 5;
 
 export default function OnboardingPage() {
@@ -77,7 +82,7 @@ export default function OnboardingPage() {
         console.error('Error updating onboarding status:', error);
 
         // If profile doesn't exist, create it
-        if (error.code === 'PGRST116') {
+        if (error.code === POSTGRES_ERROR_CODES.NO_ROWS_FOUND) {
           const { error: insertError } = await supabase
             .from('user_profiles')
             .insert({
@@ -99,6 +104,9 @@ export default function OnboardingPage() {
         }
       }
     }
+
+    // Clear the onboarding cookie to force refresh
+    document.cookie = 'onboarding_completed=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
 
     router.push('/dashboard');
   };
@@ -422,7 +430,7 @@ function FirstDecisionStep({ onNext, onBack }: { onNext: () => void; onBack: () 
         console.error('Error updating onboarding status:', error);
 
         // If profile doesn't exist, create it
-        if (error.code === 'PGRST116') {
+        if (error.code === POSTGRES_ERROR_CODES.NO_ROWS_FOUND) {
           const { error: insertError } = await supabase
             .from('user_profiles')
             .insert({
@@ -443,6 +451,9 @@ function FirstDecisionStep({ onNext, onBack }: { onNext: () => void; onBack: () 
         }
       }
     }
+
+    // Clear the onboarding cookie to force refresh
+    document.cookie = 'onboarding_completed=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
 
     // Navigate to dashboard with or without template
     if (selectedTemplate) {
