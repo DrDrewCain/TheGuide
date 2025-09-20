@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { marked } from 'marked';
+import DOMPurify from 'dompurify';
 import { cn } from '../lib/utils';
 
 interface MarkdownRendererProps {
@@ -14,13 +15,21 @@ marked.setOptions({
 });
 
 export function MarkdownRenderer({ content, className }: MarkdownRendererProps) {
-  const html = React.useMemo(() => {
-    try {
-      return marked(content);
-    } catch (error) {
-      console.error('Error parsing markdown:', error);
-      return content;
-    }
+  const [html, setHtml] = React.useState('');
+
+  React.useEffect(() => {
+    const parseMarkdown = async () => {
+      try {
+        const rawHtml = await marked(content);
+        const sanitizedHtml = DOMPurify.sanitize(rawHtml);
+        setHtml(sanitizedHtml);
+      } catch (error) {
+        console.error('Error parsing markdown:', error);
+        setHtml(content);
+      }
+    };
+
+    parseMarkdown();
   }, [content]);
 
   return (
