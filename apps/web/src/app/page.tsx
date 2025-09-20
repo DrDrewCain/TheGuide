@@ -6,10 +6,16 @@ import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { AuthModal } from '@/components/auth/auth-modal'
+import { GuestPrompt, AnimatedCard, Button } from '@theguide/ui'
+import { useState as useGuestState } from 'react'
+import { motion } from 'framer-motion'
+import { ArrowRight, Sparkles, TrendingUp, Shield, Brain } from 'lucide-react'
 
 export default function HomePage() {
   const [showAuthModal, setShowAuthModal] = useState(false)
   const [checkingAuth, setCheckingAuth] = useState(true)
+  const [guestPrompt, setGuestPrompt] = useGuestState('')
+  const [isAnalyzing, setIsAnalyzing] = useGuestState(false)
   const router = useRouter()
   const supabase = createClient()
 
@@ -30,130 +36,178 @@ export default function HomePage() {
     router.push('/dashboard')
   }
 
+  const handleGuestPrompt = async (prompt: string) => {
+    setGuestPrompt(prompt)
+    setIsAnalyzing(true)
+
+    // Store prompt in sessionStorage for guest mode
+    sessionStorage.setItem('guestPrompt', prompt)
+
+    // Navigate to a guest analysis page
+    setTimeout(() => {
+      router.push('/guest-analysis')
+    }, 1000)
+  }
+
   if (checkingAuth) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin" />
+        <Loader2 className="h-8 w-8 animate-spin text-slate-600" />
       </div>
     )
   }
 
-
   return (
-    <main className="min-h-screen bg-gradient-to-br from-primary-50 to-primary-100">
-      <div className="container mx-auto px-4 py-16">
-        <div className="max-w-4xl mx-auto">
-          <h1 className="text-5xl font-bold text-gray-900 mb-6">
-            Make Life Decisions with Confidence
-          </h1>
-          <p className="text-xl text-gray-700 mb-8">
-            AI-powered simulations that analyze thousands of scenarios to help you make informed
-            decisions about your career, relocation, education, and more.
-          </p>
-
-          <div className="grid md:grid-cols-2 gap-6 mb-12">
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h3 className="text-lg font-semibold mb-2">Career Changes</h3>
-              <p className="text-gray-600 mb-4">
-                Should you take that job offer? Switch careers? We simulate your income trajectory,
-                job satisfaction, and long-term growth.
-              </p>
-              <div className="text-sm text-primary-600 font-medium">
-                Avg. impact: $500K+ lifetime
-              </div>
+    <main className="min-h-screen bg-gradient-to-b from-white to-slate-50 overflow-x-hidden">
+      <div className="container-responsive py-20 md:py-24">
+        {/* Hero Section */}
+        <div className="max-w-5xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="text-center mb-16"
+          >
+            <div className="inline-block">
+              <motion.div
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ duration: 0.5 }}
+                className="mb-8"
+              >
+                <div className="w-20 h-20 mx-auto gradient-accent rounded-3xl flex items-center justify-center shadow-lg">
+                  <span className="text-3xl font-black text-slate-900">T</span>
+                </div>
+              </motion.div>
             </div>
 
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h3 className="text-lg font-semibold mb-2">Relocation Decisions</h3>
-              <p className="text-gray-600 mb-4">
-                Analyze cost of living, job markets, quality of life, and community fit before
-                making the big move.
-              </p>
-              <div className="text-sm text-primary-600 font-medium">Avg. savings: $50K+</div>
-            </div>
+            <h1 className="text-5xl md:text-7xl font-bold text-slate-900 mb-6 leading-tight">
+              Make Life Decisions with{' '}
+              <span className="gradient-text-accent">Confidence</span>
+            </h1>
+            <p className="text-xl md:text-2xl text-slate-600 mb-12 max-w-3xl mx-auto leading-relaxed">
+              AI-powered Monte-Carlo Simulations that analyze thousands of scenarios to help you make informed
+              decisions about your career, relocation, education, and more.
+            </p>
+          </motion.div>
 
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h3 className="text-lg font-semibold mb-2">Education Investments</h3>
-              <p className="text-gray-600 mb-4">
-                MBA or continued work? Bootcamp or degree? We calculate ROI based on your specific
-                situation.
-              </p>
-              <div className="text-sm text-primary-600 font-medium">Better ROI in 73% of cases</div>
-            </div>
+          {/* Guest Prompt Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2, duration: 0.6 }}
+            className="mb-20"
+          >
+            <GuestPrompt
+              onSubmit={handleGuestPrompt}
+              isLoading={isAnalyzing}
+              className="max-w-3xl mx-auto"
+            />
+          </motion.div>
 
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h3 className="text-lg font-semibold mb-2">Major Purchases</h3>
-              <p className="text-gray-600 mb-4">
-                Buy or rent? Now or wait? Our simulations factor in market trends and your financial
-                trajectory.
-              </p>
-              <div className="text-sm text-primary-600 font-medium">Avg. savings: $100K+</div>
-            </div>
-          </div>
+          {/* Stats Section */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4, duration: 0.6 }}
+            className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-20"
+          >
+            {[
+              { value: '10K+', label: 'Simulations per decision', icon: <Brain className="w-5 h-5" /> },
+              { value: '$500K+', label: 'Average lifetime impact', icon: <TrendingUp className="w-5 h-5" /> },
+              { value: '73%', label: 'Better ROI achieved', icon: <Sparkles className="w-5 h-5" /> },
+              { value: '99.9%', label: 'Secure & private', icon: <Shield className="w-5 h-5" /> }
+            ].map((stat, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 + index * 0.1 }}
+                className="card p-6 text-center hover:shadow-md transition-shadow"
+              >
+                <div className="flex justify-center mb-3 text-slate-400">
+                  {stat.icon}
+                </div>
+                <div className="text-3xl font-bold text-slate-900 mb-2">{stat.value}</div>
+                <div className="text-sm text-slate-600">{stat.label}</div>
+              </motion.div>
+            ))}
+          </motion.div>
 
-          <div className="flex gap-4">
-            <button
+          {/* CTA Buttons */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6, duration: 0.6 }}
+            className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-20"
+          >
+            <Button
+              variant="primary"
+              size="xl"
               onClick={() => setShowAuthModal(true)}
-              className="bg-primary-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-primary-700 transition"
+              className="min-w-[200px]"
             >
               Start Free Analysis
-            </button>
-            <Link
-              href="/how-it-works"
-              className="bg-white text-primary-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-50 transition border border-primary-200"
-            >
-              How It Works
-            </Link>
-          </div>
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </Button>
+            <Button variant="secondary" size="xl" className="min-w-[200px]" asChild>
+              <Link href="/how-it-works">How It Works</Link>
+            </Button>
+          </motion.div>
 
-          <div className="mt-16">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Why TheGuide?</h2>
-            <div className="space-y-4">
-              <div className="flex items-start">
-                <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary-600 mt-0.5"></div>
-                <div className="ml-3">
-                  <h3 className="font-semibold">1000+ Scenario Simulations</h3>
-                  <p className="text-gray-600">
-                    Our AI runs thousands of Monte Carlo simulations factoring in economic
-                    conditions, market trends, and personal circumstances.
+          {/* How It Works Section */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.8, duration: 0.6 }}
+            className="py-20 border-t border-slate-200"
+          >
+            <h2 className="text-4xl md:text-5xl font-bold text-center text-slate-900 mb-16">
+              How TheGuide Works
+            </h2>
+            <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+              {[
+                {
+                  number: '1',
+                  title: 'Describe Your Decision',
+                  description: 'Tell us what you\'re considering in plain English - no forms or surveys',
+                  color: 'from-orange-100 to-orange-200',
+                  shadowColor: 'shadow-orange-200'
+                },
+                {
+                  number: '2',
+                  title: 'AI Runs Simulations',
+                  description: '10,000+ Monte Carlo simulations using real market data and trends',
+                  color: 'from-purple-100 to-purple-200',
+                  shadowColor: 'shadow-purple-200'
+                },
+                {
+                  number: '3',
+                  title: 'Get Clear Insights',
+                  description: 'Receive personalized recommendations with confidence scores',
+                  color: 'from-green-100 to-green-200',
+                  shadowColor: 'shadow-green-200'
+                }
+              ].map((step, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.9 + index * 0.1 }}
+                  whileHover={{ y: -5 }}
+                  className="text-center group"
+                >
+                  <div className={`w-24 h-24 mx-auto mb-6 bg-gradient-to-br ${step.color} rounded-3xl flex items-center justify-center shadow-lg ${step.shadowColor} group-hover:shadow-xl transition-all duration-300`}>
+                    <span className="text-3xl font-bold text-slate-900">{step.number}</span>
+                  </div>
+                  <h3 className="text-xl font-bold mb-3 text-slate-900">{step.title}</h3>
+                  <p className="text-slate-600 leading-relaxed">
+                    {step.description}
                   </p>
-                </div>
-              </div>
-
-              <div className="flex items-start">
-                <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary-600 mt-0.5"></div>
-                <div className="ml-3">
-                  <h3 className="font-semibold">Real-Time Data Integration</h3>
-                  <p className="text-gray-600">
-                    Connected to job markets, cost of living databases, economic indicators, and
-                    housing markets for accurate predictions.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start">
-                <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary-600 mt-0.5"></div>
-                <div className="ml-3">
-                  <h3 className="font-semibold">Personalized to You</h3>
-                  <p className="text-gray-600">
-                    Connect your financial accounts, career history, and goals for
-                    hyper-personalized analysis.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start">
-                <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary-600 mt-0.5"></div>
-                <div className="ml-3">
-                  <h3 className="font-semibold">Risk & Uncertainty Analysis</h3>
-                  <p className="text-gray-600">
-                    See probability distributions, not just averages. Understand best-case,
-                    worst-case, and most likely outcomes.
-                  </p>
-                </div>
-              </div>
+                </motion.div>
+              ))}
             </div>
-          </div>
+          </motion.div>
         </div>
       </div>
 

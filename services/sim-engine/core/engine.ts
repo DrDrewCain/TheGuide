@@ -16,18 +16,40 @@ import { v4 as uuidv4 } from 'uuid'
 import { DataEnrichmentService } from '../src/data/data-enrichment'
 import { type RNG, SeededRNG } from './rng'
 
+/**
+ * Monte Carlo simulation engine for decision analysis
+ *
+ * This engine runs probabilistic simulations to help users understand
+ * the range of possible outcomes for their decisions. It uses seeded
+ * random number generation for reproducible results.
+ */
 export class SimulationEngine {
   private static readonly SIMULATION_COUNT = 1000
   private static readonly TIME_HORIZONS = [1, 3, 5, 10]
 
   private dataEnrichment: DataEnrichmentService
 
+  /**
+   * Creates a new simulation engine instance
+   *
+   * @param dataSources - Optional data sources for enrichment service
+   */
   constructor(dataSources?: any) {
     this.dataEnrichment = new DataEnrichmentService(dataSources || {})
   }
 
   /**
    * Run Monte Carlo simulation for a decision option
+   *
+   * Executes multiple simulation iterations to generate a probability
+   * distribution of outcomes. Uses data enrichment to fill in missing
+   * profile information and adjusts simulation count based on data quality.
+   *
+   * @param decision - The decision being analyzed
+   * @param option - The specific option to simulate
+   * @param partialProfile - User profile data (may be incomplete)
+   * @param seed - Optional seed for reproducible results
+   * @returns Complete simulation results with scenarios and metrics
    */
   async runSimulation(
     decision: Decision,
@@ -144,7 +166,7 @@ export class SimulationEngine {
       unemploymentRate = rng.normal(3, 0.5)
     }
 
-    const industryOutlook = SimulationEngine.determineIndustryOutlook(marketCondition)
+    const industryOutlook = SimulationEngine.determineIndustryOutlook(marketCondition, rng)
 
     return {
       gdpGrowth,
@@ -234,7 +256,7 @@ export class SimulationEngine {
 
     // Investment returns on investable assets only
     const investableAssets =
-      previousFinancials.netWorth - (userProfile.financial.assets.cash || 20000)
+      previousFinancials.netWorth - (userProfile.financial.assets.cash ?? 20000)
     const baseReturn = this.calculateInvestmentReturn(economicConditions, rng)
 
     // Add market volatility
@@ -461,13 +483,13 @@ export class SimulationEngine {
   private static identifyRisks(scenarios: Scenario[], _option: DecisionOption): Risk[] {
     const risks: Risk[] = []
 
-    // Analyze worst-case scenarios
-    const _worstScenarios = scenarios
-      .sort(
-        (a, b) =>
-          a.outcomes.year5.financialPosition.netWorth - b.outcomes.year5.financialPosition.netWorth
-      )
-      .slice(0, Math.floor(scenarios.length * 0.1))
+    // Analyze worst-case scenarios for future enhancements
+    // const worstScenarios = scenarios
+    //   .sort(
+    //     (a, b) =>
+    //       a.outcomes.year5.financialPosition.netWorth - b.outcomes.year5.financialPosition.netWorth
+    //   )
+    //   .slice(0, Math.floor(scenarios.length * 0.1))
 
     // Job loss risk
     const jobLossScenarios = scenarios.filter(s => s.keyEvents.some(e => e.type === 'layoff'))
@@ -541,10 +563,24 @@ export class SimulationEngine {
     return numbers.reduce((a, b) => a + b, 0) / numbers.length
   }
 
+  /**
+   * Determines the industry outlook based on market conditions
+   *
+   * Uses a probabilistic approach where market conditions influence
+   * the likelihood of different industry outlooks. Uses RNG for
+   * deterministic randomness.
+   *
+   * @param marketCondition - Current market condition (recession/downturn/stable/growth/boom)
+   * @param rng - Random number generator instance
+   * @returns Industry outlook (declining/stable/growing/booming)
+   * @private
+   * @static
+   */
   private static determineIndustryOutlook(
-    marketCondition: EconomicConditions['marketCondition']
+    marketCondition: EconomicConditions['marketCondition'],
+    rng: RNG
   ): EconomicConditions['industryOutlook'] {
-    const rand = Math.random()
+    const rand = rng.uniform(0, 1)
     switch (marketCondition) {
       case 'recession':
         return rand < 0.7 ? 'declining' : 'stable'
@@ -686,7 +722,16 @@ export class SimulationEngine {
       })
 
       enriched.career = enriched.career || {}
-      enriched.career.salary = salaryData.median !== undefined ? salaryData.median : salaryData.likely
+      const median = salaryData?.median
+      if (typeof median === 'number' && Number.isFinite(median)) {
+        enriched.career.salary = median
+        if (!enriched.career.compensation || enriched.career.compensation.base == null) {
+          enriched.career.compensation = {
+            ...(enriched.career.compensation || {}),
+            base: median,
+          }
+        }
+      }
     }
 
     // Apply intelligent defaults
@@ -817,7 +862,7 @@ export class SimulationEngine {
         if (this.isObject(source[key])) {
           if (!(key in target)) Object.assign(output, { [key]: source[key] })
           else output[key] = this.deepMerge(target[key], source[key])
-        } else {
+        } else if (source[key] !== undefined) {
           Object.assign(output, { [key]: source[key] })
         }
       })
@@ -846,7 +891,7 @@ export class SimulationEngine {
     const impact = option.estimatedImpact
 
     // Handle both flat and nested impact structures
-    if (typeof impact === 'object' && 'lifestyle' in impact) {
+    if (impact && typeof impact === 'object' && 'lifestyle' in impact) {
       return impact
     }
 
@@ -937,7 +982,7 @@ export class SimulationEngine {
     // Market-based events
     if (economicConditions.marketCondition === 'recession' && rng.uniform(0, 1) < 0.3) {
       events.push({
-        year: Math.floor(rng.uniform(1, 10)),
+        year: Math.floor(rng.uniform(1, 11)),
         type: 'market_crash',
         description: 'Major market downturn affecting investments',
         impact: 'negative',
