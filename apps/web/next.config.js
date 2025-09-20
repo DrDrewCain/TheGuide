@@ -34,14 +34,17 @@ const nextConfig = {
             key: 'Content-Security-Policy',
             value: `
               default-src 'self';
-              script-src 'self' 'unsafe-eval' 'unsafe-inline' *.supabase.co;
+              script-src 'self' ${process.env.NODE_ENV === 'production' ? '' : "'unsafe-inline' 'unsafe-eval'"} ;
               style-src 'self' 'unsafe-inline';
               img-src 'self' data: blob: https:;
               font-src 'self';
-              connect-src 'self' *.supabase.co wss://*.supabase.co https://api.openai.com https://generativelanguage.googleapis.com;
+              connect-src 'self' https: wss:;
+              worker-src 'self';
+              object-src 'none';
               frame-ancestors 'none';
               base-uri 'self';
               form-action 'self';
+              ${process.env.NODE_ENV === 'production' ? 'upgrade-insecure-requests;' : ''}
             `.replace(/\n/g, ' ').replace(/\s+/g, ' ').trim(),
           },
         ],
