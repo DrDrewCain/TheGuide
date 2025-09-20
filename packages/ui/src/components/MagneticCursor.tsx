@@ -3,11 +3,37 @@
 import * as React from 'react';
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 
+/**
+ * Props for the MagneticCursor component
+ */
 export interface MagneticCursorProps {
+  /** The content to wrap with the magnetic cursor effect */
   children: React.ReactNode;
+  /** Additional CSS classes to apply to the wrapper */
   className?: string;
 }
 
+/**
+ * A premium cursor effect component that creates a magnetic, interactive cursor
+ * with smooth spring animations and hover states
+ *
+ * Features:
+ * - Magnetic attraction to interactive elements
+ * - Smooth spring-based animations
+ * - Multi-layered visual effects (core, ring, glow, trail)
+ * - Custom cursor text on hover
+ * - Performance optimized with RAF throttling
+ *
+ * @example
+ * ```tsx
+ * <MagneticCursor>
+ *   <App />
+ * </MagneticCursor>
+ * ```
+ *
+ * @param props - The component props
+ * @returns A wrapper component that adds magnetic cursor effects
+ */
 export function MagneticCursor({ children, className }: MagneticCursorProps) {
   const cursorRef = React.useRef<HTMLDivElement>(null);
   const cursorX = useMotionValue(0);

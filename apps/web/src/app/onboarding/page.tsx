@@ -14,13 +14,31 @@ import {
 import { createClient } from '@/lib/supabase/client';
 import { ArrowRight, Briefcase, DollarSign, Home, Search } from 'lucide-react';
 
-// Postgres error codes
-const POSTGRES_ERROR_CODES = {
-  NO_ROWS_FOUND: 'PGRST116' // Returned when no rows match the query
-} as const;
+// Removed POSTGRES_ERROR_CODES as we're now using upsert which handles both insert and update cases
 
+/**
+ * Total number of steps in the onboarding flow
+ */
 const TOTAL_STEPS = 5;
 
+/**
+ * Onboarding page component for new user setup
+ *
+ * This component guides new users through a 5-step onboarding process:
+ * 1. Welcome and introduction
+ * 2. Interactive demo of TheGuide's capabilities
+ * 3. Primary concern selection
+ * 4. Decision type preferences
+ * 5. Template selection or custom start
+ *
+ * Features:
+ * - Progressive disclosure with animated transitions
+ * - User preference collection and persistence
+ * - Skip functionality for experienced users
+ * - Automatic profile creation/update on completion
+ *
+ * @returns The onboarding flow component
+ */
 export default function OnboardingPage() {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
@@ -43,6 +61,9 @@ export default function OnboardingPage() {
     checkAuth();
   }, [router]);
 
+  /**
+   * Handles navigation to the next step or completes onboarding
+   */
   const handleNext = () => {
     if (currentStep < TOTAL_STEPS) {
       setCurrentStep(currentStep + 1);
@@ -51,57 +72,57 @@ export default function OnboardingPage() {
     }
   };
 
+  /**
+   * Handles navigation to the previous step
+   */
   const handleBack = () => {
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
     }
   };
 
+  /**
+   * Skips the onboarding flow and marks it as skipped
+   */
   const handleSkip = () => {
     completeOnboarding(true); // Pass true for skipped
   };
 
+  /**
+   * Completes the onboarding process and updates user profile
+   *
+   * This function:
+   * 1. Updates the user profile with onboarding completion status
+   * 2. Creates a new profile if one doesn't exist
+   * 3. Clears the onboarding cookie
+   * 4. Redirects to the dashboard
+   *
+   * @param skipped - Whether the user skipped the onboarding
+   */
   const completeOnboarding = async (skipped = false) => {
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
     if (user) {
-      // Update user profile in database
+      // Use upsert to handle both update and insert cases
       const { error } = await supabase
         .from('user_profiles')
-        .update({
+        .upsert({
+          id: user.id,
           onboarding_completed: true,
           onboarding_completed_at: new Date().toISOString(),
           onboarding_skipped: skipped,
           preferences: userPreferences,
+          onboarding_version: 1,
+          dependents: 0,
+          financial_data: {},
           updated_at: new Date().toISOString()
-        })
-        .eq('id', user.id);
+        }, {
+          onConflict: 'id'
+        });
 
       if (error) {
         console.error('Error updating onboarding status:', error);
-
-        // If profile doesn't exist, create it
-        if (error.code === POSTGRES_ERROR_CODES.NO_ROWS_FOUND) {
-          const { error: insertError } = await supabase
-            .from('user_profiles')
-            .insert({
-              id: user.id,
-              onboarding_completed: true,
-              onboarding_completed_at: new Date().toISOString(),
-              onboarding_skipped: skipped,
-              preferences: userPreferences,
-              onboarding_version: 1,
-              dependents: 0,
-              financial_data: {},
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString()
-            });
-
-          if (insertError) {
-            console.error('Error creating user profile:', insertError);
-          }
-        }
       }
     }
 
@@ -129,7 +150,7 @@ export default function OnboardingPage() {
           />
         );
       case 5:
-        return <FirstDecisionStep onNext={handleNext} onBack={handleBack} />;
+        return <FirstDecisionStep onBack={handleBack} />;
       default:
         return null;
     }
@@ -400,7 +421,16 @@ function DemoStep({ onNext, onBack }: { onNext: () => void; onBack: () => void }
   );
 }
 
-function FirstDecisionStep({ onNext, onBack }: { onNext: () => void; onBack: () => void }) {
+/**
+ * Final step of onboarding - template selection or custom start
+ *
+ * Allows users to choose from predefined decision templates or start
+ * with a blank slate. Completes the onboarding process on selection.
+ *
+ * @param props - Component props
+ * @param props.onBack - Callback to go to previous step
+ */
+function FirstDecisionStep({ onBack }: { onBack: () => void }) {
   const router = useRouter();
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
 
@@ -416,39 +446,24 @@ function FirstDecisionStep({ onNext, onBack }: { onNext: () => void; onBack: () 
     const { data: { user } } = await supabase.auth.getUser();
 
     if (user) {
+      // Use upsert to handle both update and insert cases
       const { error } = await supabase
         .from('user_profiles')
-        .update({
+        .upsert({
+          id: user.id,
           onboarding_completed: true,
           onboarding_completed_at: new Date().toISOString(),
           onboarding_skipped: false,
+          onboarding_version: 1,
+          dependents: 0,
+          financial_data: {},
           updated_at: new Date().toISOString()
-        })
-        .eq('id', user.id);
+        }, {
+          onConflict: 'id'
+        });
 
       if (error) {
         console.error('Error updating onboarding status:', error);
-
-        // If profile doesn't exist, create it
-        if (error.code === POSTGRES_ERROR_CODES.NO_ROWS_FOUND) {
-          const { error: insertError } = await supabase
-            .from('user_profiles')
-            .insert({
-              id: user.id,
-              onboarding_completed: true,
-              onboarding_completed_at: new Date().toISOString(),
-              onboarding_skipped: false,
-              onboarding_version: 1,
-              dependents: 0,
-              financial_data: {},
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString()
-            });
-
-          if (insertError) {
-            console.error('Error creating user profile:', insertError);
-          }
-        }
       }
     }
 

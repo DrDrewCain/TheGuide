@@ -150,15 +150,9 @@ export default function HomePage() {
               Start Free Analysis
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
-            <Link href="/how-it-works">
-              <Button
-                variant="secondary"
-                size="xl"
-                className="min-w-[200px]"
-              >
-                How It Works
-              </Button>
-            </Link>
+            <Button variant="secondary" size="xl" className="min-w-[200px]" asChild>
+              <Link href="/how-it-works">How It Works</Link>
+            </Button>
           </motion.div>
 
           {/* How It Works Section */}

@@ -3,18 +3,33 @@ import { motion } from 'framer-motion';
 import { cn } from '../lib/utils';
 import { ArrowRight } from 'lucide-react';
 
+/**
+ * Props for the DashboardCard component
+ */
 export interface DashboardCardProps {
+  /** Card title displayed in the header */
   title: string;
+  /** Optional description text */
   description?: string;
+  /** Icon element or emoji string */
   icon?: React.ReactNode;
+  /** Custom action element for the header */
   action?: React.ReactNode;
+  /** Click handler for the entire card */
   onClick?: () => void;
+  /** Additional CSS classes */
   className?: string;
+  /** Card content */
   children?: React.ReactNode;
+  /** Visual style variant */
   variant?: 'default' | 'primary' | 'secondary' | 'success' | 'warning';
+  /** Whether to show arrow indicator on hover (only when clickable) */
   showArrow?: boolean;
 }
 
+/**
+ * Variant styles mapping for different card appearances
+ */
 const variantStyles = {
   default: 'bg-white border-slate-200',
   primary: 'bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200',
@@ -23,6 +38,29 @@ const variantStyles = {
   warning: 'bg-gradient-to-br from-orange-50 to-yellow-50 border-orange-200'
 };
 
+/**
+ * Interactive dashboard card component with hover effects
+ *
+ * Features:
+ * - Multiple color variants with gradient backgrounds
+ * - Click interactions with scale animations
+ * - Icon and action slots in the header
+ * - Automatic arrow indicator for clickable cards
+ *
+ * @example
+ * ```tsx
+ * <DashboardCard
+ *   title="Active Decisions"
+ *   description="Track your ongoing analysis"
+ *   icon="🎯"
+ *   variant="primary"
+ *   onClick={() => router.push('/decisions')}
+ * />
+ * ```
+ *
+ * @param props - The component props
+ * @returns An animated dashboard card
+ */
 export function DashboardCard({
   title,
   description,
@@ -41,6 +79,17 @@ export function DashboardCard({
       whileHover={isClickable ? { scale: 1.02, y: -4 } : {}}
       whileTap={isClickable ? { scale: 0.98 } : {}}
       onClick={onClick}
+      role={isClickable ? 'button' : undefined}
+      tabIndex={isClickable ? 0 : undefined}
+      onKeyDown={isClickable ? (e) => {
+        if ((e.key === 'Enter' || e.key === ' ') && onClick) {
+          // Prevent double-activating if inner control handled it
+          if (!(e.target as HTMLElement).closest('button, a, [role="button"]')) {
+            e.preventDefault();
+            onClick();
+          }
+        }
+      } : undefined}
       className={cn(
         'relative rounded-xl border shadow-sm transition-all duration-200',
         variantStyles[variant],
@@ -73,8 +122,8 @@ export function DashboardCard({
             whileHover={{ x: 3 }}
             className="flex-shrink-0"
           >
-            <div className="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center">
-              <ArrowRight className="w-4 h-4 text-slate-600" />
+            <div className="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center" aria-hidden="true">
+              <ArrowRight className="w-4 h-4 text-slate-600" aria-hidden="true" />
             </div>
           </motion.div>
         )}

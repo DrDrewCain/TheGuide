@@ -1,14 +1,21 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { CheckCircle } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
+/**
+ * Email confirmation success page
+ *
+ * Shows a success message after email verification and redirects
+ * users based on their onboarding status.
+ */
 export default function ConfirmPage() {
   const router = useRouter();
   const [showSuccess, setShowSuccess] = useState(false);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     const checkUserAndRedirect = async () => {
@@ -18,28 +25,40 @@ export default function ConfirmPage() {
       // Show success message briefly
       setShowSuccess(true);
 
-      setTimeout(async () => {
-        if (user) {
-          const { data: profile } = await supabase
-            .from('user_profiles')
-            .select('onboarding_completed')
-            .eq('id', user.id)
-            .single();
+      timeoutRef.current = setTimeout(async () => {
+        try {
+          if (user) {
+            const { data: profile } = await supabase
+              .from('user_profiles')
+              .select('onboarding_completed')
+              .eq('id', user.id)
+              .single();
 
-          const hasCompletedOnboarding = profile?.onboarding_completed || false;
+            const hasCompletedOnboarding = profile?.onboarding_completed || false;
 
-          if (!hasCompletedOnboarding) {
-            router.push('/onboarding');
+            if (!hasCompletedOnboarding) {
+              router.replace('/onboarding');
+            } else {
+              router.replace('/dashboard');
+            }
           } else {
-            router.push('/dashboard');
+            router.replace('/');
           }
-        } else {
-          router.push('/');
+        } catch (error) {
+          console.error('Error checking user profile:', error);
+          router.replace('/');
         }
       }, 2000); // Show success for 2 seconds
     };
 
     checkUserAndRedirect();
+
+    // Cleanup timeout on unmount
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
   }, [router]);
 
   return (

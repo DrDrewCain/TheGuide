@@ -1,14 +1,41 @@
+'use client';
+
 import * as React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '../../lib/utils';
 import { Button } from '../Button';
 import { Play, CheckCircle } from 'lucide-react';
 
+/**
+ * Props for the InteractiveDemo component
+ */
 export interface InteractiveDemoProps {
+  /** Callback when the demo is completed */
   onComplete?: () => void;
+  /** Additional CSS classes */
   className?: string;
 }
 
+/**
+ * An interactive demo component that showcases TheGuide's decision analysis process
+ *
+ * Features:
+ * - Multi-stage demo flow (intro, input, simulating, results)
+ * - Animated transitions between stages
+ * - Simulated progress tracking
+ * - Example career decision scenario
+ *
+ * @example
+ * ```tsx
+ * <InteractiveDemo
+ *   onComplete={() => router.push('/dashboard')}
+ *   className="max-w-2xl"
+ * />
+ * ```
+ *
+ * @param props - The component props
+ * @returns An interactive demo experience
+ */
 export function InteractiveDemo({ onComplete, className }: InteractiveDemoProps) {
   const [stage, setStage] = React.useState<'intro' | 'input' | 'simulating' | 'results'>('intro');
   const [simulationProgress, setSimulationProgress] = React.useState(0);

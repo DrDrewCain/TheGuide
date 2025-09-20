@@ -4,15 +4,44 @@ import { X } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { useEffect } from 'react'
 
+/**
+ * Props for the Modal component
+ */
 export interface ModalProps {
+  /** Whether the modal is open */
   isOpen: boolean
+  /** Callback function when modal is closed */
   onClose: () => void
+  /** Optional title for the modal header */
   title?: string
+  /** The content to display inside the modal */
   children: ReactNode
+  /** Size variant of the modal */
   size?: 'sm' | 'md' | 'lg' | 'xl'
+  /** Whether to show the close button */
   showCloseButton?: boolean
 }
 
+/**
+ * An accessible modal dialog component with backdrop and keyboard support
+ *
+ * Features:
+ * - Body scroll locking when open
+ * - Escape key to close
+ * - Click backdrop to close
+ * - ARIA attributes for accessibility
+ * - Multiple size variants
+ *
+ * @example
+ * ```tsx
+ * <Modal isOpen={isOpen} onClose={handleClose} title="My Modal">
+ *   <p>Modal content here</p>
+ * </Modal>
+ * ```
+ *
+ * @param props - The component props
+ * @returns A modal dialog component
+ */
 export function Modal({
   isOpen,
   onClose,

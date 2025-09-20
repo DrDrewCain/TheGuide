@@ -1,6 +1,23 @@
 import { createServerClient } from '@supabase/ssr'
 import { type NextRequest, NextResponse } from 'next/server'
 
+/**
+ * Next.js middleware for authentication and onboarding flow control
+ *
+ * This middleware handles:
+ * - Authentication checks for protected routes
+ * - Onboarding status verification and routing
+ * - Session refresh for expired tokens
+ * - Performance optimization via cookie caching
+ *
+ * Flow:
+ * 1. Check authentication status
+ * 2. For authenticated users, check onboarding completion
+ * 3. Redirect based on auth and onboarding status
+ *
+ * @param request - The incoming HTTP request
+ * @returns Response with appropriate redirects or pass-through
+ */
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({
     request: {
@@ -54,35 +71,53 @@ export async function middleware(request: NextRequest) {
         .single()
 
       hasCompletedOnboarding = profile?.onboarding_completed || false
+    }
 
-      // Cache onboarding status in cookie for future requests
+    // Cookie options for consistency
+    const cookieOptions = {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax' as const,
+      path: '/',
+      maxAge: 60 * 60 * 24, // 1 day cache
+    }
+
+    // Helper function to create redirect with cookie
+    const createRedirectWithCookie = (url: URL) => {
+      const redirect = NextResponse.redirect(url)
+      redirect.cookies.set({
+        name: 'onboarding_completed',
+        value: hasCompletedOnboarding.toString(),
+        ...cookieOptions,
+      })
+      return redirect
+    }
+
+    // Set cookie on the response if we fetched from DB
+    if (!onboardingCookie) {
       response.cookies.set({
         name: 'onboarding_completed',
         value: hasCompletedOnboarding.toString(),
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        path: '/',
-        maxAge: 60 * 60 * 24 // 1 day cache
+        ...cookieOptions,
       })
     }
 
     // Check if user needs onboarding when accessing dashboard
     if (request.nextUrl.pathname.startsWith('/dashboard') && !hasCompletedOnboarding) {
-      return NextResponse.redirect(new URL('/onboarding', request.url))
+      return createRedirectWithCookie(new URL('/onboarding', request.url))
     }
 
     // If user completed onboarding, don't let them go back
     if (request.nextUrl.pathname === '/onboarding' && hasCompletedOnboarding) {
-      return NextResponse.redirect(new URL('/dashboard', request.url))
+      return createRedirectWithCookie(new URL('/dashboard', request.url))
     }
 
     // Redirect from auth page based on onboarding status
     if (request.nextUrl.pathname === '/auth') {
       if (!hasCompletedOnboarding) {
-        return NextResponse.redirect(new URL('/onboarding', request.url))
+        return createRedirectWithCookie(new URL('/onboarding', request.url))
       } else {
-        return NextResponse.redirect(new URL('/dashboard', request.url))
+        return createRedirectWithCookie(new URL('/dashboard', request.url))
       }
     }
   }
@@ -95,6 +130,12 @@ export async function middleware(request: NextRequest) {
   return response
 }
 
+/**
+ * Middleware configuration
+ *
+ * Specifies which routes should be processed by the middleware.
+ * Excludes static assets and Next.js internal routes.
+ */
 export const config = {
   matcher: [
     /*
