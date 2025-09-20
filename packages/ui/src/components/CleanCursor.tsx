@@ -21,10 +21,13 @@ export function CleanCursor({ children, className }: CleanCursorProps) {
       cursorY.set(e.clientY);
 
       // Check if hovering over interactive elements (selector-based; avoids layout thrash)
-      const target = e.target as HTMLElement;
-      const interactiveEl = target.closest(
-        'button, a, input, textarea, [role="button"], [data-cursor-style="pointer"]'
-      );
+      const target = e.target;
+      // Ensure target is an Element before calling closest
+      const interactiveEl = target instanceof Element
+        ? target.closest(
+            'button, a, input, textarea, [role="button"], [data-cursor-style="pointer"]'
+          )
+        : null;
       const isInteractive = Boolean(interactiveEl);
 
       setIsPointer(isInteractive);

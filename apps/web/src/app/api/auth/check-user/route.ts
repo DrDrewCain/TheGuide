@@ -18,9 +18,9 @@ export async function POST(request: Request) {
     // during the actual signup process. This endpoint can be enhanced
     // later if we get access to service role keys for admin operations
 
-    // Return false to allow the signup flow to continue
-    // Supabase will handle the actual duplicate check
-    return NextResponse.json({ exists: false })
+    // Generic response to avoid user enumeration
+    // Client proceeds to signup where Supabase will handle duplicate check
+    return NextResponse.json({ ok: true }, { status: 202 })
   } catch (error) {
     console.error('Error in check-user route:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

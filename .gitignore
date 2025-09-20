@@ -104,6 +104,9 @@ iOSInjectionProject/
 # Turbo
 .turbo/
 
+# TypeScript build info
+*.tsbuildinfo
+
 # SSL Certificates
 *.crt
 *.pem

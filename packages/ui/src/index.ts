@@ -11,6 +11,7 @@ export { DashboardCard } from './components/DashboardCard'
 export { StatsCard } from './components/StatsCard'
 export { CursorEffect } from './components/CursorEffect'
 export { MagneticCursor } from './components/MagneticCursor'
+export { MarkdownRenderer } from './components/MarkdownRenderer'
 
 // Export onboarding components
 export * from './components/onboarding'

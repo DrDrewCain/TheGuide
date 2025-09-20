@@ -2,7 +2,7 @@ import * as React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '../lib/utils';
 import { Button } from './Button';
-import { ArrowRight, Sparkles } from 'lucide-react';
+import { Send } from 'lucide-react';
 
 export interface GuestPromptProps {
   className?: string;
@@ -51,70 +51,99 @@ export function GuestPrompt({
   }, [defaultValue]);
 
   return (
-    <div className={cn('w-full max-w-4xl mx-auto', className)}>
-      <motion.form
-        onSubmit={handleSubmit}
-        className={cn(
-          'relative bg-white rounded-2xl shadow-xl transition-all duration-300',
-          isFocused && 'shadow-2xl ring-2 ring-blue-500'
-        )}
-        initial={{ scale: 0.95, opacity: 0 }}
+    <div className={cn('w-full max-w-3xl mx-auto', className)}>
+      <motion.div
+        initial={{ scale: 0.98, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        transition={{ duration: 0.3 }}
+        transition={{ duration: 0.2 }}
       >
-        <div className="p-6 md:p-8">
-          <div className="flex items-start space-x-4">
-            <motion.div
-              className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center"
-              animate={{ rotate: isFocused ? 360 : 0 }}
-              transition={{ duration: 0.5 }}
-            >
-              <Sparkles className="w-5 h-5 text-white" />
-            </motion.div>
+        <div className="text-center mb-12">
+          <h2 className="text-3xl font-semibold text-slate-900 mb-2">
+            What decision are you facing?
+          </h2>
+          <p className="text-slate-600">
+            Get AI-powered insights based on 10,000+ simulations
+          </p>
+        </div>
 
-            <div className="flex-1">
-              <label htmlFor="decision-prompt" className="block text-lg font-semibold text-gray-900 mb-2">
-                What decision are you facing?
-              </label>
-              <textarea
-                ref={textareaRef}
-                id="decision-prompt"
-                value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
-                onFocus={() => setIsFocused(true)}
-                onBlur={() => setIsFocused(false)}
-                placeholder={placeholder}
-                className="w-full resize-none text-gray-700 placeholder-gray-400 focus:outline-none text-lg leading-relaxed"
-                rows={1}
-                disabled={isLoading}
-              />
+        <form onSubmit={handleSubmit} className="relative">
+          <div className="relative">
+            <textarea
+              ref={textareaRef}
+              id="decision-prompt"
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+              onFocus={() => setIsFocused(true)}
+              onBlur={() => setIsFocused(false)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSubmit(e as any);
+                }
+              }}
+              placeholder={placeholder}
+              className={cn(
+                'w-full px-6 py-5 resize-none text-lg placeholder-slate-400 focus:outline-none leading-relaxed',
+                'bg-slate-50 rounded-2xl transition-all duration-200',
+                'hover:bg-slate-100/70',
+                isFocused && 'bg-white shadow-lg ring-2 ring-slate-200',
+                isLoading && 'opacity-70'
+              )}
+              rows={1}
+              disabled={isLoading}
+            />
+
+            <div className="absolute right-3 bottom-3">
+              <Button
+                type="submit"
+                disabled={!prompt.trim() || isLoading}
+                size="sm"
+                className={cn(
+                  'rounded-xl h-10 px-5 bg-slate-900 hover:bg-slate-800 text-white transition-all duration-200',
+                  prompt.trim() && !isLoading
+                    ? 'opacity-100 translate-y-0'
+                    : 'opacity-0 translate-y-2 pointer-events-none'
+                )}
+              >
+                {isLoading ? (
+                  <span className="flex items-center gap-2">
+                    <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Analyzing
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-2">
+                    Analyze
+                    <Send className="w-4 h-4" />
+                  </span>
+                )}
+              </Button>
             </div>
           </div>
 
           <AnimatePresence>
             {isFocused && !prompt && (
               <motion.div
-                initial={{ opacity: 0, y: -10 }}
+                initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="mt-4 ml-14"
+                exit={{ opacity: 0, y: 10 }}
+                className="absolute top-full mt-3 w-full"
               >
-                <p className="text-sm text-gray-500 mb-3">Try one of these examples:</p>
-                <div className="flex flex-wrap gap-2">
+                <div className="bg-white rounded-xl shadow-xl border border-slate-100 p-1">
+                  <div className="p-3">
+                    <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">Suggested prompts</p>
+                  </div>
                   {suggestions.map((suggestion, index) => (
                     <motion.button
                       key={index}
                       type="button"
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
                       transition={{ delay: index * 0.05 }}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
                       onClick={() => {
                         setPrompt(suggestion);
                         textareaRef.current?.focus();
                       }}
-                      className="text-xs px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-full text-gray-700 transition-colors"
+                      className="w-full text-left text-sm px-4 py-3 text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-all duration-150 border-t border-slate-100"
                     >
                       {suggestion}
                     </motion.button>
@@ -123,42 +152,38 @@ export function GuestPrompt({
               </motion.div>
             )}
           </AnimatePresence>
+        </form>
+
+        <div className="mt-3 flex items-center justify-center gap-2 text-xs text-slate-500">
+          <span className="flex items-center gap-1">
+            <span className="w-1.5 h-1.5 bg-green-500 rounded-full" />
+            No sign-up required
+          </span>
+          <span className="text-slate-300">•</span>
+          <span>Free analysis</span>
+          <span className="text-slate-300">•</span>
+          <span>Press Enter to submit</span>
         </div>
 
-        <div className="px-6 md:px-8 pb-6 md:pb-8">
-          <div className="flex items-center justify-between">
-            <p className="text-sm text-gray-500">
-              No sign-up required • Free analysis
-            </p>
-            <Button
-              type="submit"
-              disabled={!prompt.trim() || isLoading}
-              className="min-w-[140px]"
-            >
-              {isLoading ? (
-                <>
-                  <span className="animate-pulse">Analyzing...</span>
-                </>
-              ) : (
-                <>
-                  Analyze <ArrowRight className="ml-2 h-4 w-4" />
-                </>
-              )}
-            </Button>
+        <motion.div
+          className="mt-16 grid grid-cols-3 gap-4 text-center"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.3 }}
+        >
+          <div className="py-3 px-4 bg-slate-50 rounded-xl">
+            <div className="text-2xl font-semibold text-slate-900">10K+</div>
+            <div className="text-xs text-slate-600 mt-1">Simulations</div>
           </div>
-        </div>
-      </motion.form>
-
-      <motion.div
-        className="mt-8 text-center"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.5 }}
-      >
-        <p className="text-gray-600">
-          <span className="font-semibold">10,000+ simulations</span> • Real market data •
-          <span className="text-blue-600 font-semibold ml-1">AI-powered insights</span>
-        </p>
+          <div className="py-3 px-4 bg-slate-50 rounded-xl">
+            <div className="text-2xl font-semibold text-slate-900">87%</div>
+            <div className="text-xs text-slate-600 mt-1">Accuracy</div>
+          </div>
+          <div className="py-3 px-4 bg-slate-50 rounded-xl">
+            <div className="text-2xl font-semibold text-slate-900">2-3s</div>
+            <div className="text-xs text-slate-600 mt-1">Analysis Time</div>
+          </div>
+        </motion.div>
       </motion.div>
     </div>
   );
