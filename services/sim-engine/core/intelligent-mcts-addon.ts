@@ -40,6 +40,7 @@ export class IntelligentMCTSAddon {
   private advancedEngine: AdvancedSimulationEngine
   private llmService?: DecisionAnalysisService
   private config: IntelligentMCTSConfig
+  private coreEngine: SimulationEngine
 
   constructor(config: IntelligentMCTSConfig) {
     this.config = config

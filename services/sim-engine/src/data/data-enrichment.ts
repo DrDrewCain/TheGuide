@@ -9,7 +9,7 @@ export interface DataSources {
 
 // Data enrichment service to fill gaps with public data
 export class DataEnrichmentService {
-  constructor(private dataSources: DataSources) {}
+  constructor(private dataSources: DataSources) { }
 
   // Get salary distributions by role and location
   async getSalaryDistribution(params: {
@@ -25,7 +25,7 @@ export class DataEnrichmentService {
       return {
         min: blsData.percentile10,
         max: blsData.percentile90,
-        likely: blsData.median,
+        median: blsData.median,
         mean: blsData.mean,
         confidence: 'high',
       }
@@ -41,7 +41,7 @@ export class DataEnrichmentService {
       return {
         min: industryData.percentile25 * 0.8,
         max: industryData.percentile75 * 1.3,
-        likely: industryData.median,
+        median: industryData.median,
         confidence: 'medium',
       }
     }
@@ -50,7 +50,7 @@ export class DataEnrichmentService {
     return {
       min: 35000,
       max: 150000,
-      likely: 65000,
+      median: 65000,
       confidence: 'low',
       note: 'Using national averages - provide more details for accurate estimates',
     }
@@ -160,17 +160,28 @@ export class DataEnrichmentService {
 
     // Example: Infer salary from job title and location
     if (userContext.jobTitle && !userContext.salary) {
-      inferences.estimatedSalaryRange = await this.getSalaryDistribution({
-        jobTitle: userContext.jobTitle,
-        location: userContext.location,
+      const result = await this.getSalaryDistribution({
+        jobTitle: userContext.jobTitle as string,
+        location: userContext.location as string | undefined,
       })
+      // Only assign if it has the expected shape
+      if ('median' in result) {
+        inferences.estimatedSalaryRange = {
+          min: result.min,
+          max: result.max,
+          median: result.median,
+        }
+      }
     }
 
     // Example: Infer career stage from age and experience
     if (userContext.age || userContext.yearsExperience) {
-      if (userContext.yearsExperience < 5 || userContext.age < 30) {
+      const yearsExperience = userContext.yearsExperience as number | undefined
+      const age = userContext.age as number | undefined
+
+      if ((yearsExperience !== undefined && yearsExperience < 5) || (age !== undefined && age < 30)) {
         inferences.careerStage = 'early'
-      } else if (userContext.yearsExperience < 15 || userContext.age < 45) {
+      } else if ((yearsExperience !== undefined && yearsExperience < 15) || (age !== undefined && age < 45)) {
         inferences.careerStage = 'mid'
       } else {
         inferences.careerStage = 'senior'

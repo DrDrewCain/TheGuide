@@ -20,11 +20,15 @@ simulationRouter.post('/run', async (req, res, next) => {
   try {
     const { decisionId, optionId } = runSimulationSchema.parse(req.body)
 
+    if (!req.user?.userId) {
+      return res.status(401).json({ message: 'User not authenticated' })
+    }
+
     // Verify decision and option exist and belong to user
     const decision = await prisma.decision.findFirst({
       where: {
         id: decisionId,
-        userId: req.user?.userId,
+        userId: req.user.userId,
         options: {
           some: { id: optionId },
         },
@@ -49,7 +53,7 @@ simulationRouter.post('/run', async (req, res, next) => {
       simulationId: simulation.id,
       decisionId,
       optionId,
-      userId: req.user?.userId,
+      userId: req.user.userId,
     })
 
     res.status(202).json({

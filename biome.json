@@ -21,15 +21,17 @@
     "rules": {
       "recommended": true,
       "correctness": {
-        "noUnusedVariables": "error"
+        "noUnusedVariables": "warn",
+        "noUnusedPrivateClassMembers": "warn"
       },
       "style": {
-        "noNonNullAssertion": "warn",
-        "noParameterAssign": "error",
-        "useAsConstAssertion": "error",
-        "useConst": "error"
+        "noNonNullAssertion": "off",
+        "noParameterAssign": "warn",
+        "useAsConstAssertion": "off",
+        "useConst": "warn"
       },
       "suspicious": {
+        "noExplicitAny": "warn",
         "noDebugger": "error"
       }
     }

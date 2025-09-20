@@ -10,6 +10,7 @@ import { ScrambledSobol } from './sobol'
 export class QMCEngine {
   private sobol: ScrambledSobol
   private copula: VineCopula
+  private rng: PhiloxRNG
 
   constructor(dimension: number, seed: string) {
     this.sobol = new ScrambledSobol(dimension, seed)

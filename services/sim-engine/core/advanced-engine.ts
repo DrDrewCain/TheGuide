@@ -27,6 +27,7 @@ export class AdvancedSimulationEngine {
   private sensitivityAnalyzer: SensitivityAnalyzer
   private baseEngine: SimulationEngine
   private masterSeed: string
+  private streamFactory: PhiloxStreamFactory
 
   constructor(masterSeed: string) {
     this.masterSeed = masterSeed

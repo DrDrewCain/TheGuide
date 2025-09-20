@@ -129,8 +129,12 @@ userRouter.put('/profile', async (req, res, next) => {
 // Delete user account
 userRouter.delete('/account', async (req, res, next) => {
   try {
+    if (!req.user?.userId) {
+      return res.status(401).json({ message: 'User not authenticated' })
+    }
+
     // Use admin client to delete user (cascades will handle related data)
-    const { error } = await supabaseAdmin.auth.admin.deleteUser(req.user?.userId)
+    const { error } = await supabaseAdmin.auth.admin.deleteUser(req.user.userId)
 
     if (error) throw error
 

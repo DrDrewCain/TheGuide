@@ -10,6 +10,7 @@
     "dev": "turbo run dev --parallel",
     "dev:web": "turbo run dev --filter=@theguide/web",
     "dev:api": "turbo run dev --filter=@theguide/api",
+    "dev:core": "turbo run dev --filter=@theguide/api --filter=@theguide/web --parallel",
     "dev:services": "turbo run dev --filter=@theguide/api --filter=@theguide/sim-engine --filter=@theguide/market-proxy",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",

@@ -20,12 +20,16 @@ simulationRouter.post('/run', async (req, res, next) => {
   try {
     const { decisionId, optionId } = runSimulationSchema.parse(req.body)
 
+    if (!req.user?.userId) {
+      return res.status(401).json({ message: 'User not authenticated' })
+    }
+
     // Verify decision and option exist and belong to user
     const { data: decision, error: decisionError } = await supabase
       .from('decisions')
       .select('id')
       .eq('id', decisionId)
-      .eq('user_id', req.user?.userId)
+      .eq('user_id', req.user.userId)
       .single()
 
     if (decisionError || !decision) {
@@ -62,7 +66,7 @@ simulationRouter.post('/run', async (req, res, next) => {
       simulationId: simulation.id,
       decisionId,
       optionId,
-      userId: req.user?.userId,
+      userId: req.user.userId,
     })
 
     // Update simulation with job ID

@@ -1,22 +1,22 @@
-import { DecisionAnalysisService } from '@theguide/ai-services'
-import { Router } from 'express'
-import { z } from 'zod'
+import { Router } from 'express';
+import { z } from 'zod';
+import { DecisionAnalysisService } from '@theguide/ai-services';
 
-const router = Router()
+const router = Router();
 
 // Initialize AI service with available provider (Gemini preferred, OpenAI fallback)
 const aiService = new DecisionAnalysisService({
   geminiKey: process.env.GEMINI_API_KEY,
-  openaiKey: process.env.OPENAI_API_KEY,
-})
+  openaiKey: process.env.OPENAI_API_KEY
+});
 
 const analyzeDecisionSchema = z.object({
-  description: z.string().min(50).max(2000),
-})
+  description: z.string().min(50).max(2000)
+});
 
 router.post('/analyze-decision', async (req, res) => {
   try {
-    const { description } = analyzeDecisionSchema.parse(req.body)
+    const { description } = analyzeDecisionSchema.parse(req.body);
 
     // Use GPT to analyze the description and extract decision components
     const analysisPrompt = `
@@ -49,51 +49,51 @@ router.post('/analyze-decision', async (req, res) => {
           // other relevant parameters
         }
       }
-    `
+    `;
 
-    const analysis = await aiService.analyzeUserInput(analysisPrompt)
+    const analysis = await aiService.analyzeUserInput(analysisPrompt);
 
-    res.json(analysis)
+    res.json(analysis);
   } catch (error) {
-    console.error('Decision analysis error:', error)
+    console.error('Decision analysis error:', error);
 
     if (error instanceof z.ZodError) {
       return res.status(400).json({
         error: 'Invalid input',
-        details: error.errors,
-      })
+        details: error.errors
+      });
     }
 
     res.status(500).json({
       error: 'Failed to analyze decision',
-      message: error instanceof Error ? error.message : 'Unknown error',
-    })
+      message: error instanceof Error ? error.message : 'Unknown error'
+    });
   }
-})
+});
 
 // Endpoint to run AI-enhanced simulation
 router.post('/simulate-with-ai', async (req, res) => {
   try {
-    const { decision, option, profile } = req.body
+    const { decision, option, profile } = req.body;
 
     // Validate inputs
     if (!decision || !option || !profile) {
       return res.status(400).json({
-        error: 'Missing required fields: decision, option, profile',
-      })
+        error: 'Missing required fields: decision, option, profile'
+      });
     }
 
     // Run AI-enhanced analysis
-    const result = await aiService.analyzeDecision(decision, option, profile)
+    const result = await aiService.analyzeDecision(decision, option, profile);
 
-    res.json(result)
+    res.json(result);
   } catch (error) {
-    console.error('AI simulation error:', error)
+    console.error('AI simulation error:', error);
     res.status(500).json({
       error: 'Failed to run AI simulation',
-      message: error instanceof Error ? error.message : 'Unknown error',
-    })
+      message: error instanceof Error ? error.message : 'Unknown error'
+    });
   }
-})
+});
 
-export default router
+export default router;

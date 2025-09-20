@@ -75,7 +75,10 @@ authRouter.post('/refresh', async (req, res, next) => {
 // Logout
 authRouter.post('/logout', authenticate, async (req, res, next) => {
   try {
-    await AuthService.logout(req.user?.userId)
+    if (!req.user?.userId) {
+      return res.status(401).json({ message: 'User not authenticated' })
+    }
+    await AuthService.logout(req.user.userId)
     res.json({ message: 'Logged out successfully' })
   } catch (error) {
     next(error)
