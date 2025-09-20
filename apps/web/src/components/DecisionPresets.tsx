@@ -1,49 +1,49 @@
-'use client';
+'use client'
 
-import React from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import {
-  Briefcase,
-  Home,
-  GraduationCap,
-  MapPin,
+  ArrowRight,
   Baby,
+  Briefcase,
   DollarSign,
+  GraduationCap,
+  Home,
+  MapPin,
   Rocket,
   TrendingUp,
-  ArrowRight
-} from 'lucide-react';
+} from 'lucide-react'
+import type React from 'react'
+import { Badge } from '@/components/ui/badge'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
 interface DecisionPreset {
-  id: string;
-  type: string;
-  title: string;
-  subtitle: string;
-  scenario: string;
-  icon: React.ElementType;
-  color: string;
-  bgColor: string;
+  id: string
+  type: string
+  title: string
+  subtitle: string
+  scenario: string
+  icon: React.ElementType
+  color: string
+  bgColor: string
   defaultValues: {
     // Scenario-specific fields
-    decisionTitle?: string;
-    decisionDescription?: string;
-    option1Title?: string;
-    option1Description?: string;
-    option2Title?: string;
-    option2Description?: string;
+    decisionTitle?: string
+    decisionDescription?: string
+    option1Title?: string
+    option1Description?: string
+    option2Title?: string
+    option2Description?: string
 
     // User-specific fields (editable)
-    age?: number;
-    income?: number;
-    savings?: number;
-    location?: string;
-    industry?: string;
-    role?: string;
-    experience?: number;
-    dependents?: number;
-  };
-  tags: string[];
+    age?: number
+    income?: number
+    savings?: number
+    location?: string
+    industry?: string
+    role?: string
+    experience?: number
+    dependents?: number
+  }
+  tags: string[]
 }
 
 const DECISION_PRESETS: DecisionPreset[] = [
@@ -52,14 +52,16 @@ const DECISION_PRESETS: DecisionPreset[] = [
     type: 'career_change',
     title: 'Tech Career Pivot',
     subtitle: 'Software Engineer → Senior Product Manager',
-    scenario: 'You\'re a mid-level software engineer considering a transition to product management at a growing startup.',
+    scenario:
+      "You're a mid-level software engineer considering a transition to product management at a growing startup.",
     icon: Rocket,
     color: 'text-purple-600',
     bgColor: 'bg-purple-100',
     defaultValues: {
       // Scenario-specific pre-fills
       decisionTitle: 'Switch from Engineering to Product Management',
-      decisionDescription: 'Considering a transition from software engineering to product management role at a Series B startup. The role offers more strategic influence but requires new skills.',
+      decisionDescription:
+        'Considering a transition from software engineering to product management role at a Series B startup. The role offers more strategic influence but requires new skills.',
       option1Title: 'Accept PM role at startup',
       option1Description: 'Join as Senior PM with equity package',
       option2Title: 'Stay in current engineering role',
@@ -71,23 +73,25 @@ const DECISION_PRESETS: DecisionPreset[] = [
       savings: 45000,
       role: 'Software Engineer',
       experience: 5,
-      location: 'San Francisco'
+      location: 'San Francisco',
     },
-    tags: ['Tech', 'Career Growth', 'Startup']
+    tags: ['Tech', 'Career Growth', 'Startup'],
   },
   {
     id: 'first-home',
     type: 'home_purchase',
     title: 'First Home Purchase',
     subtitle: 'Rent vs Buy in a Hot Market',
-    scenario: 'You\'re tired of rising rents and considering buying your first home in a competitive housing market.',
+    scenario:
+      "You're tired of rising rents and considering buying your first home in a competitive housing market.",
     icon: Home,
     color: 'text-blue-600',
     bgColor: 'bg-blue-100',
     defaultValues: {
       // Scenario-specific pre-fills
       decisionTitle: 'Buy First Home vs Continue Renting',
-      decisionDescription: 'Rising rents are pushing me to consider homeownership. Found a $450K starter home with 10% down payment option.',
+      decisionDescription:
+        'Rising rents are pushing me to consider homeownership. Found a $450K starter home with 10% down payment option.',
       option1Title: 'Buy the starter home',
       option1Description: '$450K home, 10% down, FHA loan',
       option2Title: 'Keep renting and saving',
@@ -98,23 +102,25 @@ const DECISION_PRESETS: DecisionPreset[] = [
       income: 85000,
       savings: 65000,
       location: 'Austin',
-      dependents: 0
+      dependents: 0,
     },
-    tags: ['Real Estate', 'Investment', 'Lifestyle']
+    tags: ['Real Estate', 'Investment', 'Lifestyle'],
   },
   {
     id: 'mba-decision',
     type: 'education',
     title: 'MBA Program',
     subtitle: 'Top-20 Business School',
-    scenario: 'You\'ve been accepted to a prestigious MBA program. Is the $200k investment worth it?',
+    scenario:
+      "You've been accepted to a prestigious MBA program. Is the $200k investment worth it?",
     icon: GraduationCap,
     color: 'text-green-600',
     bgColor: 'bg-green-100',
     defaultValues: {
       // Scenario-specific pre-fills
       decisionTitle: 'Pursue MBA at Top Business School',
-      decisionDescription: 'Accepted to top-20 MBA program. Total cost $200K including lost income. Strong consulting/banking placement.',
+      decisionDescription:
+        'Accepted to top-20 MBA program. Total cost $200K including lost income. Strong consulting/banking placement.',
       option1Title: 'Enroll in full-time MBA',
       option1Description: '2 years, $200K cost, career pivot opportunity',
       option2Title: 'Continue current path',
@@ -125,23 +131,25 @@ const DECISION_PRESETS: DecisionPreset[] = [
       income: 95000,
       savings: 40000,
       role: 'Marketing Manager',
-      experience: 4
+      experience: 4,
     },
-    tags: ['Education', 'Career Investment', 'Debt']
+    tags: ['Education', 'Career Investment', 'Debt'],
   },
   {
     id: 'city-relocation',
     type: 'relocation',
     title: 'Coast-to-Coast Move',
     subtitle: 'NYC → San Diego Lifestyle Change',
-    scenario: 'Considering leaving the NYC grind for better work-life balance in San Diego with a remote job.',
+    scenario:
+      'Considering leaving the NYC grind for better work-life balance in San Diego with a remote job.',
     icon: MapPin,
     color: 'text-orange-600',
     bgColor: 'bg-orange-100',
     defaultValues: {
       // Scenario-specific pre-fills
       decisionTitle: 'Relocate from NYC to San Diego',
-      decisionDescription: 'Company approved permanent remote work. Considering move to San Diego for better weather and lifestyle.',
+      decisionDescription:
+        'Company approved permanent remote work. Considering move to San Diego for better weather and lifestyle.',
       option1Title: 'Move to San Diego',
       option1Description: 'Beach lifestyle, lower stress, same salary',
       option2Title: 'Stay in NYC',
@@ -152,9 +160,9 @@ const DECISION_PRESETS: DecisionPreset[] = [
       income: 140000,
       savings: 80000,
       location: 'New York',
-      role: 'Senior Consultant'
+      role: 'Senior Consultant',
     },
-    tags: ['Lifestyle', 'Remote Work', 'Quality of Life']
+    tags: ['Lifestyle', 'Remote Work', 'Quality of Life'],
   },
   {
     id: 'startup-founding',
@@ -168,7 +176,8 @@ const DECISION_PRESETS: DecisionPreset[] = [
     defaultValues: {
       // Scenario-specific pre-fills
       decisionTitle: 'Leave Job to Launch B2B SaaS Startup',
-      decisionDescription: 'Have a validated B2B SaaS idea with 5 pilot customers. Need to go full-time to scale.',
+      decisionDescription:
+        'Have a validated B2B SaaS idea with 5 pilot customers. Need to go full-time to scale.',
       option1Title: 'Quit and go all-in',
       option1Description: 'Full focus, burn through savings, raise funding',
       option2Title: 'Keep job, build on side',
@@ -179,23 +188,25 @@ const DECISION_PRESETS: DecisionPreset[] = [
       income: 150000,
       savings: 120000,
       experience: 10,
-      role: 'Engineering Manager'
+      role: 'Engineering Manager',
     },
-    tags: ['Entrepreneurship', 'High Risk', 'High Reward']
+    tags: ['Entrepreneurship', 'High Risk', 'High Reward'],
   },
   {
     id: 'family-planning',
     type: 'family_planning',
     title: 'Starting a Family',
     subtitle: 'First Child Financial Planning',
-    scenario: 'Planning for your first child and evaluating the financial impact on your household.',
+    scenario:
+      'Planning for your first child and evaluating the financial impact on your household.',
     icon: Baby,
     color: 'text-pink-600',
     bgColor: 'bg-pink-100',
     defaultValues: {
       // Scenario-specific pre-fills
       decisionTitle: 'Start a Family - First Child',
-      decisionDescription: 'Planning to have first child within the next year. Need to consider childcare costs, potential career breaks, and housing needs.',
+      decisionDescription:
+        'Planning to have first child within the next year. Need to consider childcare costs, potential career breaks, and housing needs.',
       option1Title: 'Have child, one parent reduces hours',
       option1Description: 'One parent works 60% for childcare',
       option2Title: 'Have child, both work full-time',
@@ -206,15 +217,15 @@ const DECISION_PRESETS: DecisionPreset[] = [
       income: 110000,
       savings: 70000,
       dependents: 0,
-      location: 'Denver'
+      location: 'Denver',
     },
-    tags: ['Family', 'Life Change', 'Long-term']
-  }
-];
+    tags: ['Family', 'Life Change', 'Long-term'],
+  },
+]
 
 interface DecisionPresetsProps {
-  onSelectPreset: (preset: DecisionPreset) => void;
-  onSkip: () => void;
+  onSelectPreset: (preset: DecisionPreset) => void
+  onSkip: () => void
 }
 
 export default function DecisionPresets({ onSelectPreset, onSkip }: DecisionPresetsProps) {
@@ -225,20 +236,23 @@ export default function DecisionPresets({ onSelectPreset, onSkip }: DecisionPres
           Choose Your Scenario
         </h2>
         <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-          Select a pre-built scenario to quickly explore common life decisions, or create your own custom scenario
+          Select a pre-built scenario to quickly explore common life decisions, or create your own
+          custom scenario
         </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {DECISION_PRESETS.map((preset) => {
-          const Icon = preset.icon;
+        {DECISION_PRESETS.map(preset => {
+          const Icon = preset.icon
           return (
             <Card
               key={preset.id}
               className="hover:shadow-xl transition-all duration-300 cursor-pointer group relative overflow-hidden"
               onClick={() => onSelectPreset(preset)}
             >
-              <div className={`absolute inset-0 ${preset.bgColor} opacity-0 group-hover:opacity-10 transition-opacity`} />
+              <div
+                className={`absolute inset-0 ${preset.bgColor} opacity-0 group-hover:opacity-10 transition-opacity`}
+              />
 
               <CardHeader className="space-y-4">
                 <div className="flex items-start justify-between">
@@ -255,12 +269,10 @@ export default function DecisionPresets({ onSelectPreset, onSkip }: DecisionPres
               </CardHeader>
 
               <CardContent className="space-y-4">
-                <p className="text-sm text-gray-600 line-clamp-2">
-                  {preset.scenario}
-                </p>
+                <p className="text-sm text-gray-600 line-clamp-2">{preset.scenario}</p>
 
                 <div className="flex flex-wrap gap-2">
-                  {preset.tags.map((tag) => (
+                  {preset.tags.map(tag => (
                     <Badge key={tag} variant="secondary" className="text-xs">
                       {tag}
                     </Badge>
@@ -283,7 +295,7 @@ export default function DecisionPresets({ onSelectPreset, onSkip }: DecisionPres
                 </div>
               </CardContent>
             </Card>
-          );
+          )
         })}
       </div>
 
@@ -298,7 +310,7 @@ export default function DecisionPresets({ onSelectPreset, onSkip }: DecisionPres
         </button>
       </div>
     </div>
-  );
+  )
 }
 
-export { type DecisionPreset };
+export type { DecisionPreset }

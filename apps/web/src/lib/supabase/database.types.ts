@@ -1,10 +1,4 @@
-export type Json =
-  | string
-  | number
-  | boolean
-  | null
-  | { [key: string]: Json | undefined }
-  | Json[]
+export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[]
 
 export interface Database {
   public: {
@@ -72,7 +66,16 @@ export interface Database {
         Row: {
           id: string
           user_id: string
-          type: 'career_change' | 'job_offer' | 'relocation' | 'education' | 'home_purchase' | 'investment' | 'family_planning' | 'retirement' | 'business_startup'
+          type:
+            | 'career_change'
+            | 'job_offer'
+            | 'relocation'
+            | 'education'
+            | 'home_purchase'
+            | 'investment'
+            | 'family_planning'
+            | 'retirement'
+            | 'business_startup'
           title: string
           description: string | null
           status: 'draft' | 'analyzing' | 'simulated' | 'decided' | 'implemented' | 'archived'
@@ -88,7 +91,16 @@ export interface Database {
         Insert: {
           id?: string
           user_id: string
-          type: 'career_change' | 'job_offer' | 'relocation' | 'education' | 'home_purchase' | 'investment' | 'family_planning' | 'retirement' | 'business_startup'
+          type:
+            | 'career_change'
+            | 'job_offer'
+            | 'relocation'
+            | 'education'
+            | 'home_purchase'
+            | 'investment'
+            | 'family_planning'
+            | 'retirement'
+            | 'business_startup'
           title: string
           description?: string | null
           status?: 'draft' | 'analyzing' | 'simulated' | 'decided' | 'implemented' | 'archived'
@@ -104,7 +116,16 @@ export interface Database {
         Update: {
           id?: string
           user_id?: string
-          type?: 'career_change' | 'job_offer' | 'relocation' | 'education' | 'home_purchase' | 'investment' | 'family_planning' | 'retirement' | 'business_startup'
+          type?:
+            | 'career_change'
+            | 'job_offer'
+            | 'relocation'
+            | 'education'
+            | 'home_purchase'
+            | 'investment'
+            | 'family_planning'
+            | 'retirement'
+            | 'business_startup'
           title?: string
           description?: string | null
           status?: 'draft' | 'analyzing' | 'simulated' | 'decided' | 'implemented' | 'archived'
@@ -293,7 +314,16 @@ export interface Database {
       [_ in never]: never
     }
     Enums: {
-      decision_type: 'career_change' | 'job_offer' | 'relocation' | 'education' | 'home_purchase' | 'investment' | 'family_planning' | 'retirement' | 'business_startup'
+      decision_type:
+        | 'career_change'
+        | 'job_offer'
+        | 'relocation'
+        | 'education'
+        | 'home_purchase'
+        | 'investment'
+        | 'family_planning'
+        | 'retirement'
+        | 'business_startup'
       decision_status: 'draft' | 'analyzing' | 'simulated' | 'decided' | 'implemented' | 'archived'
       simulation_status: 'pending' | 'running' | 'completed' | 'failed'
       marital_status: 'single' | 'married' | 'divorced' | 'widowed'

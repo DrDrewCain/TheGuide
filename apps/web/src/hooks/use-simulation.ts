@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
 import { apiClient } from '@/lib/api/client'
+import { createClient } from '@/lib/supabase/client'
 import type { Database } from '@/lib/supabase/database.types'
 
 type Simulation = Database['public']['Tables']['simulations']['Row']
@@ -44,7 +44,7 @@ export function useSimulation(simulationId: string | null) {
           table: 'simulations',
           filter: `id=eq.${simulationId}`,
         },
-        (payload) => {
+        payload => {
           setSimulation(payload.new as Simulation)
         }
       )

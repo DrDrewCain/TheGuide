@@ -1,23 +1,23 @@
-import * as React from 'react';
+import * as React from 'react'
 
 interface TabsContextValue {
-  value: string;
-  onValueChange: (value: string) => void;
+  value: string
+  onValueChange: (value: string) => void
 }
 
-const TabsContext = React.createContext<TabsContextValue | undefined>(undefined);
+const TabsContext = React.createContext<TabsContextValue | undefined>(undefined)
 
 const Tabs = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement> & {
-    value?: string;
-    defaultValue?: string;
-    onValueChange?: (value: string) => void;
+    value?: string
+    defaultValue?: string
+    onValueChange?: (value: string) => void
   }
 >(({ className, value, defaultValue, onValueChange, children, ...props }, ref) => {
-  const [internalValue, setInternalValue] = React.useState(defaultValue || '');
-  const actualValue = value !== undefined ? value : internalValue;
-  const actualOnValueChange = onValueChange || setInternalValue;
+  const [internalValue, setInternalValue] = React.useState(defaultValue || '')
+  const actualValue = value !== undefined ? value : internalValue
+  const actualOnValueChange = onValueChange || setInternalValue
 
   return (
     <TabsContext.Provider value={{ value: actualValue, onValueChange: actualOnValueChange }}>
@@ -25,30 +25,29 @@ const Tabs = React.forwardRef<
         {children}
       </div>
     </TabsContext.Provider>
-  );
-});
-Tabs.displayName = 'Tabs';
+  )
+})
+Tabs.displayName = 'Tabs'
 
-const TabsList = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={`inline-flex h-10 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground ${className || ''}`}
-    {...props}
-  />
-));
-TabsList.displayName = 'TabsList';
+const TabsList = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
+  ({ className, ...props }, ref) => (
+    <div
+      ref={ref}
+      className={`inline-flex h-10 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground ${className || ''}`}
+      {...props}
+    />
+  )
+)
+TabsList.displayName = 'TabsList'
 
 const TabsTrigger = React.forwardRef<
   HTMLButtonElement,
   React.ButtonHTMLAttributes<HTMLButtonElement> & { value: string }
 >(({ className, value, children, ...props }, ref) => {
-  const context = React.useContext(TabsContext);
-  if (!context) throw new Error('TabsTrigger must be used within Tabs');
+  const context = React.useContext(TabsContext)
+  if (!context) throw new Error('TabsTrigger must be used within Tabs')
 
-  const isActive = context.value === value;
+  const isActive = context.value === value
 
   return (
     <button
@@ -63,18 +62,18 @@ const TabsTrigger = React.forwardRef<
     >
       {children}
     </button>
-  );
-});
-TabsTrigger.displayName = 'TabsTrigger';
+  )
+})
+TabsTrigger.displayName = 'TabsTrigger'
 
 const TabsContent = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement> & { value: string }
 >(({ className, value, children, ...props }, ref) => {
-  const context = React.useContext(TabsContext);
-  if (!context) throw new Error('TabsContent must be used within Tabs');
+  const context = React.useContext(TabsContext)
+  if (!context) throw new Error('TabsContent must be used within Tabs')
 
-  if (context.value !== value) return null;
+  if (context.value !== value) return null
 
   return (
     <div
@@ -84,8 +83,8 @@ const TabsContent = React.forwardRef<
     >
       {children}
     </div>
-  );
-});
-TabsContent.displayName = 'TabsContent';
+  )
+})
+TabsContent.displayName = 'TabsContent'
 
-export { Tabs, TabsContent, TabsList, TabsTrigger };
+export { Tabs, TabsContent, TabsList, TabsTrigger }

@@ -1,8 +1,8 @@
 'use client'
 
+import { Button } from '@theguide/ui'
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { Button } from '@theguide/ui'
 
 type AuthMode = 'signin' | 'signup'
 
@@ -55,16 +55,10 @@ export function AuthForm() {
           {mode === 'signin' ? 'Sign In' : 'Create Account'}
         </h2>
 
-        {error && (
-          <div className="bg-red-50 text-red-600 p-3 rounded-md text-sm">
-            {error}
-          </div>
-        )}
+        {error && <div className="bg-red-50 text-red-600 p-3 rounded-md text-sm">{error}</div>}
 
         {message && (
-          <div className="bg-green-50 text-green-600 p-3 rounded-md text-sm">
-            {message}
-          </div>
+          <div className="bg-green-50 text-green-600 p-3 rounded-md text-sm">{message}</div>
         )}
 
         <div>
@@ -75,7 +69,7 @@ export function AuthForm() {
             id="email"
             type="email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={e => setEmail(e.target.value)}
             required
             className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="you@example.com"
@@ -90,7 +84,7 @@ export function AuthForm() {
             id="password"
             type="password"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={e => setPassword(e.target.value)}
             required
             minLength={6}
             className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -98,11 +92,7 @@ export function AuthForm() {
           />
         </div>
 
-        <Button
-          type="submit"
-          disabled={loading}
-          className="w-full"
-        >
+        <Button type="submit" disabled={loading} className="w-full">
           {loading ? 'Loading...' : mode === 'signin' ? 'Sign In' : 'Sign Up'}
         </Button>
 

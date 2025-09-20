@@ -1,60 +1,61 @@
-'use client';
+'use client'
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation'
+import type React from 'react'
+import { createContext, useContext, useEffect, useState } from 'react'
 
 interface AuthContextType {
-  user: { id: string; email: string } | null;
-  login: (email: string, password: string) => Promise<void>;
-  logout: () => void;
-  isLoading: boolean;
+  user: { id: string; email: string } | null
+  login: (email: string, password: string) => Promise<void>
+  logout: () => void
+  isLoading: boolean
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<{ id: string; email: string } | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const router = useRouter();
+  const [user, setUser] = useState<{ id: string; email: string } | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const router = useRouter()
 
   useEffect(() => {
     // Check if user is logged in (from localStorage for demo)
-    const storedUser = localStorage.getItem('user');
+    const storedUser = localStorage.getItem('user')
     if (storedUser) {
-      setUser(JSON.parse(storedUser));
+      setUser(JSON.parse(storedUser))
     }
-    setIsLoading(false);
-  }, []);
+    setIsLoading(false)
+  }, [])
 
   const login = async (email: string, password: string) => {
     // Simple demo authentication
     if (email && password) {
-      const user = { id: 'demo-user', email };
-      setUser(user);
-      localStorage.setItem('user', JSON.stringify(user));
-      router.push('/dashboard');
+      const user = { id: 'demo-user', email }
+      setUser(user)
+      localStorage.setItem('user', JSON.stringify(user))
+      router.push('/dashboard')
     } else {
-      throw new Error('Invalid credentials');
+      throw new Error('Invalid credentials')
     }
-  };
+  }
 
   const logout = () => {
-    setUser(null);
-    localStorage.removeItem('user');
-    router.push('/');
-  };
+    setUser(null)
+    localStorage.removeItem('user')
+    router.push('/')
+  }
 
   return (
     <AuthContext.Provider value={{ user, login, logout, isLoading }}>
       {children}
     </AuthContext.Provider>
-  );
+  )
 }
 
 export function useAuth() {
-  const context = useContext(AuthContext);
+  const context = useContext(AuthContext)
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error('useAuth must be used within an AuthProvider')
   }
-  return context;
+  return context
 }

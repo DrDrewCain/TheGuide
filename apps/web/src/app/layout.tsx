@@ -10,11 +10,7 @@ export const metadata: Metadata = {
   description: 'Make informed life decisions with AI-powered simulations based on real data',
 }
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body className={inter.className}>

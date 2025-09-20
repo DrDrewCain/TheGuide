@@ -1,68 +1,72 @@
-'use client';
+'use client'
 
-import React from 'react';
-import { SimulationResult } from '@theguide/models';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Progress } from '@/components/ui/progress';
-import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import type { SimulationResult } from '@theguide/models'
 import {
-  BarChart,
+  AlertCircle,
+  Briefcase,
+  CheckCircle2,
+  DollarSign,
+  Heart,
+  Info,
+  TrendingDown,
+  TrendingUp,
+} from 'lucide-react'
+import type React from 'react'
+import {
   Bar,
-  LineChart,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  Legend,
   Line,
-  ScatterChart,
+  LineChart,
+  ResponsiveContainer,
   Scatter,
+  ScatterChart,
+  Tooltip,
   XAxis,
   YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  Cell,
-  ReferenceLine
-} from 'recharts';
-import {
-  TrendingUp,
-  TrendingDown,
-  AlertCircle,
-  CheckCircle2,
-  Info,
-  DollarSign,
-  Briefcase,
-  Heart
-} from 'lucide-react';
+} from 'recharts'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Badge } from '@/components/ui/badge'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Progress } from '@/components/ui/progress'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 interface SimulationResultsProps {
-  result: SimulationResult;
-  quickEstimate?: any;
-  sensitivity?: any;
-  onBack?: () => void;
+  result: SimulationResult
+  quickEstimate?: any
+  sensitivity?: any
+  onBack?: () => void
 }
 
-export default function SimulationResults({ result, quickEstimate, sensitivity, onBack }: SimulationResultsProps) {
-  const { aggregateMetrics, scenarios, recommendations, risks, opportunities } = result;
-  const showSensitivity = !!sensitivity;
+export default function SimulationResults({
+  result,
+  quickEstimate,
+  sensitivity,
+  onBack,
+}: SimulationResultsProps) {
+  const { aggregateMetrics, scenarios, recommendations, risks, opportunities } = result
+  const showSensitivity = !!sensitivity
 
   // Format currency
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
-      maximumFractionDigits: 0
-    }).format(value);
-  };
+      maximumFractionDigits: 0,
+    }).format(value)
+  }
 
   // Format percentage
   const formatPercent = (value: number) => {
-    return `${(value * 100).toFixed(1)}%`;
-  };
+    return `${(value * 100).toFixed(1)}%`
+  }
 
   // Prepare data for visualizations
-  const outcomeDistribution = prepareOutcomeDistribution(scenarios);
-  const timeSeriesData = prepareTimeSeriesData(scenarios);
-  const scenarioCloud = prepareScenarioCloud(scenarios);
+  const outcomeDistribution = prepareOutcomeDistribution(scenarios)
+  const timeSeriesData = prepareTimeSeriesData(scenarios)
+  const scenarioCloud = prepareScenarioCloud(scenarios)
 
   return (
     <div className="space-y-6">
@@ -120,21 +124,18 @@ export default function SimulationResults({ result, quickEstimate, sensitivity, 
                   aggregateMetrics.probabilityOfSuccess > 0.7
                     ? 'default'
                     : aggregateMetrics.probabilityOfSuccess > 0.5
-                    ? 'secondary'
-                    : 'destructive'
+                      ? 'secondary'
+                      : 'destructive'
                 }
               >
                 {aggregateMetrics.probabilityOfSuccess > 0.7
                   ? 'High Confidence'
                   : aggregateMetrics.probabilityOfSuccess > 0.5
-                  ? 'Moderate'
-                  : 'Low Confidence'}
+                    ? 'Moderate'
+                    : 'Low Confidence'}
               </Badge>
             </div>
-            <Progress
-              value={aggregateMetrics.probabilityOfSuccess * 100}
-              className="h-3"
-            />
+            <Progress value={aggregateMetrics.probabilityOfSuccess * 100} className="h-3" />
             <p className="text-sm text-muted-foreground">
               Based on {scenarios.length} simulated scenarios with{' '}
               {formatPercent(aggregateMetrics.confidenceInterval.confidence)} confidence
@@ -181,26 +182,22 @@ export default function SimulationResults({ result, quickEstimate, sensitivity, 
                       angle: -90,
                       position: 'insideLeft',
                       offset: 10,
-                      style: { textAnchor: 'middle' }
+                      style: { textAnchor: 'middle' },
                     }}
-                    tickFormatter={(value) => formatPercent(value)}
+                    tickFormatter={value => formatPercent(value)}
                     tick={{ fill: '#666' }}
                   />
                   <Tooltip
                     formatter={(value: number) => formatPercent(value)}
-                    labelFormatter={(label) => `Outcome Range: ${label}`}
+                    labelFormatter={label => `Outcome Range: ${label}`}
                     contentStyle={{
                       backgroundColor: 'rgba(255, 255, 255, 0.95)',
                       border: '1px solid #ccc',
                       borderRadius: '8px',
-                      padding: '10px'
+                      padding: '10px',
                     }}
                   />
-                  <Bar
-                    dataKey="probability"
-                    fill="#3b82f6"
-                    radius={[4, 4, 0, 0]}
-                  >
+                  <Bar dataKey="probability" fill="#3b82f6" radius={[4, 4, 0, 0]}>
                     {outcomeDistribution.map((entry, index) => (
                       <Cell
                         key={`cell-${index}`}
@@ -208,8 +205,8 @@ export default function SimulationResults({ result, quickEstimate, sensitivity, 
                           entry.isConfidenceInterval
                             ? '#10b981'
                             : entry.isMedian
-                            ? '#8b5cf6'
-                            : '#3b82f6'
+                              ? '#8b5cf6'
+                              : '#3b82f6'
                         }
                       />
                     ))}
@@ -238,9 +235,7 @@ export default function SimulationResults({ result, quickEstimate, sensitivity, 
           <Card className="overflow-hidden">
             <CardHeader>
               <CardTitle>Projected Outcomes Over Time</CardTitle>
-              <CardDescription>
-                Expected trajectory with confidence intervals
-              </CardDescription>
+              <CardDescription>Expected trajectory with confidence intervals</CardDescription>
             </CardHeader>
             <CardContent className="p-0 pb-6">
               <ResponsiveContainer width="100%" height={450}>
@@ -255,7 +250,7 @@ export default function SimulationResults({ result, quickEstimate, sensitivity, 
                       value: 'Years from Now',
                       position: 'insideBottom',
                       offset: -5,
-                      style: { textAnchor: 'middle' }
+                      style: { textAnchor: 'middle' },
                     }}
                     tick={{ fill: '#666' }}
                   />
@@ -266,12 +261,12 @@ export default function SimulationResults({ result, quickEstimate, sensitivity, 
                       angle: -90,
                       position: 'insideLeft',
                       offset: 10,
-                      style: { textAnchor: 'middle' }
+                      style: { textAnchor: 'middle' },
                     }}
-                    tickFormatter={(value) => {
-                      if (value === 0) return '$0';
-                      if (value < 0) return `-$${Math.abs(value / 1000).toFixed(0)}k`;
-                      return `$${(value / 1000).toFixed(0)}k`;
+                    tickFormatter={value => {
+                      if (value === 0) return '$0'
+                      if (value < 0) return `-$${Math.abs(value / 1000).toFixed(0)}k`
+                      return `$${(value / 1000).toFixed(0)}k`
                     }}
                     tick={{ fill: '#666' }}
                     width={80}
@@ -284,7 +279,7 @@ export default function SimulationResults({ result, quickEstimate, sensitivity, 
                       angle: 90,
                       position: 'insideRight',
                       offset: 10,
-                      style: { textAnchor: 'middle' }
+                      style: { textAnchor: 'middle' },
                     }}
                     domain={[0, 10]}
                     ticks={[0, 2, 4, 6, 8, 10]}
@@ -294,16 +289,16 @@ export default function SimulationResults({ result, quickEstimate, sensitivity, 
                   <Tooltip
                     formatter={(value: number, name: string) => {
                       if (name.includes('Worth') || name.includes('Bound')) {
-                        return formatCurrency(value);
+                        return formatCurrency(value)
                       }
-                      return value.toFixed(1);
+                      return value.toFixed(1)
                     }}
                     labelStyle={{ color: '#333', fontWeight: 'bold' }}
                     contentStyle={{
                       backgroundColor: 'rgba(255, 255, 255, 0.95)',
                       border: '1px solid #ccc',
                       borderRadius: '8px',
-                      padding: '10px'
+                      padding: '10px',
                     }}
                   />
                   <Legend
@@ -311,7 +306,7 @@ export default function SimulationResults({ result, quickEstimate, sensitivity, 
                     height={36}
                     wrapperStyle={{
                       paddingTop: '20px',
-                      fontSize: '12px'
+                      fontSize: '12px',
                     }}
                     iconType="line"
                   />
@@ -375,29 +370,25 @@ export default function SimulationResults({ result, quickEstimate, sensitivity, 
           <Card className="overflow-hidden">
             <CardHeader>
               <CardTitle>Scenario Cloud</CardTitle>
-              <CardDescription>
-                Each point represents a possible future scenario
-              </CardDescription>
+              <CardDescription>Each point represents a possible future scenario</CardDescription>
             </CardHeader>
             <CardContent className="p-0 pb-6">
               <ResponsiveContainer width="100%" height={450}>
-                <ScatterChart
-                  margin={{ top: 20, right: 30, left: 60, bottom: 60 }}
-                >
+                <ScatterChart margin={{ top: 20, right: 30, left: 60, bottom: 60 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                   <XAxis
                     dataKey="financial"
                     name="Financial Outcome"
-                    tickFormatter={(value) => {
-                      if (value === 0) return '$0';
-                      if (value < 0) return `-$${Math.abs(value / 1000).toFixed(0)}k`;
-                      return `$${(value / 1000).toFixed(0)}k`;
+                    tickFormatter={value => {
+                      if (value === 0) return '$0'
+                      if (value < 0) return `-$${Math.abs(value / 1000).toFixed(0)}k`
+                      return `$${(value / 1000).toFixed(0)}k`
                     }}
                     label={{
                       value: 'Financial Outcome',
                       position: 'insideBottom',
                       offset: -5,
-                      style: { textAnchor: 'middle' }
+                      style: { textAnchor: 'middle' },
                     }}
                     tick={{ fill: '#666' }}
                   />
@@ -409,7 +400,7 @@ export default function SimulationResults({ result, quickEstimate, sensitivity, 
                       angle: -90,
                       position: 'insideLeft',
                       offset: 10,
-                      style: { textAnchor: 'middle' }
+                      style: { textAnchor: 'middle' },
                     }}
                     domain={[0, 10]}
                     ticks={[0, 2, 4, 6, 8, 10]}
@@ -417,32 +408,26 @@ export default function SimulationResults({ result, quickEstimate, sensitivity, 
                   />
                   <Tooltip
                     formatter={(value: number, name: string) =>
-                      name === 'Financial Outcome'
-                        ? formatCurrency(value)
-                        : value.toFixed(1)
+                      name === 'Financial Outcome' ? formatCurrency(value) : value.toFixed(1)
                     }
                     contentStyle={{
                       backgroundColor: 'rgba(255, 255, 255, 0.95)',
                       border: '1px solid #ccc',
                       borderRadius: '8px',
-                      padding: '10px'
+                      padding: '10px',
                     }}
                     cursor={{ strokeDasharray: '3 3' }}
                   />
-                  <Scatter
-                    name="Scenarios"
-                    data={scenarioCloud}
-                    fill="#3b82f6"
-                  >
+                  <Scatter name="Scenarios" data={scenarioCloud} fill="#3b82f6">
                     {scenarioCloud.map((entry, index) => {
                       // Color points based on outcome quality
                       const color =
                         entry.financial > 100000 && entry.happiness > 7
                           ? '#10b981' // Green for good outcomes
                           : entry.financial < 0 || entry.happiness < 5
-                          ? '#ef4444' // Red for poor outcomes
-                          : '#3b82f6'; // Blue for average
-                      return <Cell key={`cell-${index}`} fill={color} fillOpacity={0.7} />;
+                            ? '#ef4444' // Red for poor outcomes
+                            : '#3b82f6' // Blue for average
+                      return <Cell key={`cell-${index}`} fill={color} fillOpacity={0.7} />
                     })}
                   </Scatter>
                 </ScatterChart>
@@ -483,7 +468,7 @@ export default function SimulationResults({ result, quickEstimate, sensitivity, 
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {recommendations.slice(0, 3).map((rec) => (
+              {recommendations.slice(0, 3).map(rec => (
                 <Alert key={rec.id} className="border-green-200">
                   <Info className="h-4 w-4" />
                   <AlertDescription>
@@ -510,14 +495,12 @@ export default function SimulationResults({ result, quickEstimate, sensitivity, 
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {risks.slice(0, 3).map((risk) => (
+              {risks.slice(0, 3).map(risk => (
                 <Alert key={risk.id} className="border-yellow-200">
                   <AlertCircle className="h-4 w-4" />
                   <AlertDescription>
                     <strong>{risk.description}</strong>
-                    <p className="mt-1 text-sm">
-                      Probability: {formatPercent(risk.probability)}
-                    </p>
+                    <p className="mt-1 text-sm">Probability: {formatPercent(risk.probability)}</p>
                     {risk.mitigation && (
                       <p className="mt-2 text-sm text-muted-foreground">
                         Mitigation: {risk.mitigation[0]}
@@ -531,7 +514,7 @@ export default function SimulationResults({ result, quickEstimate, sensitivity, 
         </Card>
       </div>
     </div>
-  );
+  )
 }
 
 // Helper Components
@@ -542,72 +525,68 @@ function MetricCard({
   max,
   trend,
   subtitle,
-  icon: Icon
+  icon: Icon,
 }: {
-  title: string;
-  value: string;
-  max?: number;
-  trend?: 'up' | 'down';
-  subtitle?: string;
-  icon?: React.ElementType;
+  title: string
+  value: string
+  max?: number
+  trend?: 'up' | 'down'
+  subtitle?: string
+  icon?: React.ElementType
 }) {
   return (
     <Card className="hover:shadow-lg transition-shadow duration-200">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium text-gray-600">{title}</CardTitle>
         {Icon && (
-          <div className={`p-2 rounded-full ${
-            trend === 'up' ? 'bg-green-100' :
-            trend === 'down' ? 'bg-red-100' :
-            'bg-blue-100'
-          }`}>
-            <Icon className={`h-4 w-4 ${
-              trend === 'up' ? 'text-green-600' :
-              trend === 'down' ? 'text-red-600' :
-              'text-blue-600'
-            }`} />
+          <div
+            className={`p-2 rounded-full ${
+              trend === 'up' ? 'bg-green-100' : trend === 'down' ? 'bg-red-100' : 'bg-blue-100'
+            }`}
+          >
+            <Icon
+              className={`h-4 w-4 ${
+                trend === 'up'
+                  ? 'text-green-600'
+                  : trend === 'down'
+                    ? 'text-red-600'
+                    : 'text-blue-600'
+              }`}
+            />
           </div>
         )}
       </CardHeader>
       <CardContent>
         <div className="flex items-baseline gap-2">
           <div className="text-2xl font-bold text-gray-900">{value}</div>
-          {trend && (
-            trend === 'up' ? (
+          {trend &&
+            (trend === 'up' ? (
               <TrendingUp className="h-5 w-5 text-green-500" />
             ) : (
               <TrendingDown className="h-5 w-5 text-red-500" />
-            )
-          )}
+            ))}
         </div>
         {max && (
           <div className="mt-3">
-            <Progress
-              value={(parseFloat(value) / max) * 100}
-              className="h-2"
-            />
+            <Progress value={(parseFloat(value) / max) * 100} className="h-2" />
           </div>
         )}
-        {subtitle && (
-          <p className="text-xs text-muted-foreground mt-3">{subtitle}</p>
-        )}
+        {subtitle && <p className="text-xs text-muted-foreground mt-3">{subtitle}</p>}
       </CardContent>
     </Card>
-  );
+  )
 }
 
 function SensitivityAnalysis({ sensitivity }: { sensitivity: any }) {
   const formatPercent = (value: number) => {
-    return `${(value * 100).toFixed(1)}%`;
-  };
+    return `${(value * 100).toFixed(1)}%`
+  }
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>Parameter Sensitivity</CardTitle>
-        <CardDescription>
-          Which factors have the biggest impact on outcomes
-        </CardDescription>
+        <CardDescription>Which factors have the biggest impact on outcomes</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
@@ -634,7 +613,7 @@ function SensitivityAnalysis({ sensitivity }: { sensitivity: any }) {
         )}
       </CardContent>
     </Card>
-  );
+  )
 }
 
 // Data preparation functions
@@ -642,89 +621,94 @@ function SensitivityAnalysis({ sensitivity }: { sensitivity: any }) {
 function prepareOutcomeDistribution(scenarios: any[]) {
   // Validate scenarios
   if (!scenarios || scenarios.length === 0) {
-    return [];
+    return []
   }
 
   // Create histogram bins
   const values = scenarios
     .map(s => s?.outcomes?.year10?.financialPosition?.netWorth)
-    .filter(v => v !== undefined && v !== null && !isNaN(v));
+    .filter(v => v !== undefined && v !== null && !Number.isNaN(v))
 
   if (values.length === 0) {
-    return [];
+    return []
   }
 
-  const sorted = [...values].sort((a, b) => a - b);
-  const min = sorted[0];
-  const max = sorted[sorted.length - 1];
+  const sorted = [...values].sort((a, b) => a - b)
+  const min = sorted[0]
+  const max = sorted[sorted.length - 1]
 
   // Handle edge case where all values are the same
   if (min === max) {
-    return [{
-      min,
-      max,
-      count: values.length,
-      range: `${Math.round(min / 1000)}k`,
-      probability: 1,
-      isMedian: true,
-      isConfidenceInterval: true
-    }];
+    return [
+      {
+        min,
+        max,
+        count: values.length,
+        range: `${Math.round(min / 1000)}k`,
+        probability: 1,
+        isMedian: true,
+        isConfidenceInterval: true,
+      },
+    ]
   }
 
-  const binCount = Math.min(10, values.length); // Reduced bins to avoid overlap
-  const binSize = (max - min) / binCount;
+  const binCount = Math.min(10, values.length) // Reduced bins to avoid overlap
+  const binSize = (max - min) / binCount
 
-  const bins = Array(binCount).fill(0).map((_, i) => {
-    const binMin = min + i * binSize;
-    const binMax = min + (i + 1) * binSize;
-    return {
-      min: binMin,
-      max: binMax,
-      count: 0,
-      range: binMin < 0 && binMax > 0
-        ? '$0'
-        : binMin < 0
-        ? `-$${Math.abs(Math.round(binMin / 1000))}k`
-        : `$${Math.round(binMin / 1000)}k`
-    };
-  });
+  const bins = Array(binCount)
+    .fill(0)
+    .map((_, i) => {
+      const binMin = min + i * binSize
+      const binMax = min + (i + 1) * binSize
+      return {
+        min: binMin,
+        max: binMax,
+        count: 0,
+        range:
+          binMin < 0 && binMax > 0
+            ? '$0'
+            : binMin < 0
+              ? `-$${Math.abs(Math.round(binMin / 1000))}k`
+              : `$${Math.round(binMin / 1000)}k`,
+      }
+    })
 
   // Count values in each bin
   values.forEach(value => {
-    const binIndex = Math.min(Math.max(0, Math.floor((value - min) / binSize)), binCount - 1);
+    const binIndex = Math.min(Math.max(0, Math.floor((value - min) / binSize)), binCount - 1)
     if (bins[binIndex]) {
-      bins[binIndex].count++;
+      bins[binIndex].count++
     }
-  });
+  })
 
   // Convert to probabilities
   return bins.map(bin => ({
     ...bin,
     probability: bin.count / values.length,
     isMedian: false, // Would need to calculate
-    isConfidenceInterval: false // Would need to calculate
-  }));
+    isConfidenceInterval: false, // Would need to calculate
+  }))
 }
 
 function prepareTimeSeriesData(scenarios: any[]) {
   if (!scenarios || scenarios.length === 0) {
-    return [];
+    return []
   }
 
-  const years = ['year1', 'year3', 'year5', 'year10'];
-  const yearNumbers = [1, 3, 5, 10];
+  const years = ['year1', 'year3', 'year5', 'year10']
+  const yearNumbers = [1, 3, 5, 10]
 
   return yearNumbers.map((year, i) => {
-    const yearKey = years[i];
+    const yearKey = years[i]
     const financialValues = scenarios
       .map(s => s?.outcomes?.[yearKey]?.financialPosition?.netWorth)
-      .filter(v => v !== undefined && v !== null && !isNaN(v));
+      .filter(v => v !== undefined && v !== null && !Number.isNaN(v))
     const satisfactionValues = scenarios
       .map(s => s?.outcomes?.[yearKey]?.careerProgress?.jobSatisfaction)
-      .filter(v => v !== undefined && v !== null && !isNaN(v));
+      .filter(v => v !== undefined && v !== null && !Number.isNaN(v))
     const happinessValues = scenarios
       .map(s => s?.outcomes?.[yearKey]?.lifeMetrics?.overallHappiness)
-      .filter(v => v !== undefined && v !== null && !isNaN(v));
+      .filter(v => v !== undefined && v !== null && !Number.isNaN(v))
 
     return {
       year,
@@ -732,14 +716,14 @@ function prepareTimeSeriesData(scenarios: any[]) {
       netWorthLower: financialValues.length > 0 ? percentile(financialValues, 5) : 0,
       netWorthUpper: financialValues.length > 0 ? percentile(financialValues, 95) : 0,
       satisfaction: satisfactionValues.length > 0 ? average(satisfactionValues) : 0,
-      happiness: happinessValues.length > 0 ? average(happinessValues) : 0
-    };
-  });
+      happiness: happinessValues.length > 0 ? average(happinessValues) : 0,
+    }
+  })
 }
 
 function prepareScenarioCloud(scenarios: any[]) {
   if (!scenarios || scenarios.length === 0) {
-    return [];
+    return []
   }
 
   return scenarios
@@ -748,18 +732,23 @@ function prepareScenarioCloud(scenarios: any[]) {
     .map(scenario => ({
       financial: scenario?.outcomes?.year10?.financialPosition?.netWorth || 0,
       happiness: scenario?.outcomes?.year10?.lifeMetrics?.overallHappiness || 0,
-      satisfaction: scenario?.outcomes?.year10?.careerProgress?.jobSatisfaction || 0
+      satisfaction: scenario?.outcomes?.year10?.careerProgress?.jobSatisfaction || 0,
     }))
-    .filter(point => !isNaN(point.financial) && !isNaN(point.happiness) && !isNaN(point.satisfaction));
+    .filter(
+      point =>
+        !Number.isNaN(point.financial) &&
+        !Number.isNaN(point.happiness) &&
+        !Number.isNaN(point.satisfaction)
+    )
 }
 
 // Utility functions
 function average(values: number[]) {
-  return values.reduce((sum, val) => sum + val, 0) / values.length;
+  return values.reduce((sum, val) => sum + val, 0) / values.length
 }
 
 function percentile(values: number[], p: number) {
-  const sorted = [...values].sort((a, b) => a - b);
-  const index = Math.floor((p / 100) * sorted.length);
-  return sorted[index];
+  const sorted = [...values].sort((a, b) => a - b)
+  const index = Math.floor((p / 100) * sorted.length)
+  return sorted[index]
 }

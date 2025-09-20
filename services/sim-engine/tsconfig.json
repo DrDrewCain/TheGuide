@@ -9,16 +9,11 @@
       "@theguide/api/*": ["../api/src/*"]
     }
   },
-  "include": [
-    "core/**/*",
-    "src/**/*",
-    "index.ts"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist"
-  ],
+  "include": ["core/**/*", "src/**/*", "index.ts"],
+  "exclude": ["node_modules", "dist"],
   "references": [
-    { "path": "../api" }
+    {
+      "path": "../api"
+    }
   ]
 }

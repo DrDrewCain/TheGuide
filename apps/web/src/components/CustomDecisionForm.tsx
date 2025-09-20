@@ -1,66 +1,66 @@
-'use client';
+'use client'
 
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Sparkles, AlertCircle } from 'lucide-react';
+import { AlertCircle, Loader2, Sparkles } from 'lucide-react'
+import { useState } from 'react'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
 interface CustomDecisionFormProps {
   onAnalysis: (analysis: {
-    type: string;
-    title: string;
-    description: string;
+    type: string
+    title: string
+    description: string
     options: Array<{
-      title: string;
-      description: string;
-      pros: string[];
-      cons: string[];
-    }>;
-    parameters: any;
-  }) => void;
-  onBack: () => void;
+      title: string
+      description: string
+      pros: string[]
+      cons: string[]
+    }>
+    parameters: Record<string, unknown>
+  }) => void
+  onBack: () => void
 }
 
 export default function CustomDecisionForm({ onAnalysis, onBack }: CustomDecisionFormProps) {
-  const [description, setDescription] = useState('');
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [error, setError] = useState('');
+  const [description, setDescription] = useState('')
+  const [isAnalyzing, setIsAnalyzing] = useState(false)
+  const [error, setError] = useState('')
 
   const examplePrompts = [
     "I'm 28 and considering leaving my $150k tech job to start a SaaS company. I have $80k saved.",
-    "Should I do a full-time MBA at 32 with 2 kids, or continue working and do an executive MBA?",
-    "Thinking about moving from NYC to Austin for better quality of life, but worried about career impact.",
-    "Got a job offer with 40% more equity but 20% less salary. Current job is stable but limited growth.",
-    "My parents need care. Should I move back home, hire help, or relocate them near me?"
-  ];
+    'Should I do a full-time MBA at 32 with 2 kids, or continue working and do an executive MBA?',
+    'Thinking about moving from NYC to Austin for better quality of life, but worried about career impact.',
+    'Got a job offer with 40% more equity but 20% less salary. Current job is stable but limited growth.',
+    'My parents need care. Should I move back home, hire help, or relocate them near me?',
+  ]
 
   const handleAnalyze = async () => {
     if (description.length < 50) {
-      setError('Please provide more details about your decision (at least 50 characters)');
-      return;
+      setError('Please provide more details about your decision (at least 50 characters)')
+      return
     }
 
-    setIsAnalyzing(true);
-    setError('');
+    setIsAnalyzing(true)
+    setError('')
 
     try {
       // Call API to analyze the decision using AI
       const response = await fetch('/api/analyze-decision', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ description })
-      });
+        body: JSON.stringify({ description }),
+      })
 
-      if (!response.ok) throw new Error('Analysis failed');
+      if (!response.ok) throw new Error('Analysis failed')
 
-      const analysis = await response.json();
-      onAnalysis(analysis);
-    } catch (err) {
-      setError('Failed to analyze decision. Please try again.');
+      const analysis = await response.json()
+      onAnalysis(analysis)
+    } catch (_err) {
+      setError('Failed to analyze decision. Please try again.')
     } finally {
-      setIsAnalyzing(false);
+      setIsAnalyzing(false)
     }
-  };
+  }
 
   return (
     <Card className="max-w-3xl mx-auto">
@@ -70,18 +70,23 @@ export default function CustomDecisionForm({ onAnalysis, onBack }: CustomDecisio
           <CardTitle>Describe Your Decision</CardTitle>
         </div>
         <CardDescription>
-          Tell us about your situation in your own words. Our AI will analyze it and create a personalized simulation.
+          Tell us about your situation in your own words. Our AI will analyze it and create a
+          personalized simulation.
         </CardDescription>
       </CardHeader>
 
       <CardContent className="space-y-6">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label
+            htmlFor="decision-description"
+            className="block text-sm font-medium text-gray-700 mb-2"
+          >
             What decision are you facing?
           </label>
           <textarea
+            id="decision-description"
             value={description}
-            onChange={(e) => setDescription(e.target.value)}
+            onChange={e => setDescription(e.target.value)}
             className="w-full min-h-[200px] px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
             placeholder="Describe your situation, the options you're considering, and what factors are important to you..."
           />
@@ -100,9 +105,10 @@ export default function CustomDecisionForm({ onAnalysis, onBack }: CustomDecisio
         <div className="space-y-3">
           <p className="text-sm font-medium text-gray-700">Example scenarios:</p>
           <div className="space-y-2">
-            {examplePrompts.map((prompt, index) => (
+            {examplePrompts.map(prompt => (
               <button
-                key={index}
+                key={`example-${prompt.substring(0, 20)}`}
+                type="button"
                 onClick={() => setDescription(prompt)}
                 className="w-full text-left text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 p-2 rounded transition"
               >
@@ -130,11 +136,7 @@ export default function CustomDecisionForm({ onAnalysis, onBack }: CustomDecisio
               </>
             )}
           </Button>
-          <Button
-            onClick={onBack}
-            variant="outline"
-            disabled={isAnalyzing}
-          >
+          <Button onClick={onBack} variant="outline" disabled={isAnalyzing}>
             Back
           </Button>
         </div>
@@ -150,5 +152,5 @@ export default function CustomDecisionForm({ onAnalysis, onBack }: CustomDecisio
         </div>
       </CardContent>
     </Card>
-  );
+  )
 }
