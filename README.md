@@ -201,10 +201,8 @@ Shared data models for both platforms:
 - **Life Optimizer Subscription**: $29/month
 - **Premium Data Feeds**: $99/month
 
-## Contributing
-
-This is currently a private project. Please contact the maintainers for contribution guidelines.
-
 ## License
 
 Proprietary - All rights reserved
+
+![CodeRabbit Pull Request Reviews](https://img.shields.io/coderabbit/prs/github/DrDrewCain/TheGuide?utm_source=oss&utm_medium=github&utm_campaign=DrDrewCain%2FTheGuide&labelColor=171717&color=FF570A&link=https%3A%2F%2Fcoderabbit.ai&label=CodeRabbit+Reviews)
