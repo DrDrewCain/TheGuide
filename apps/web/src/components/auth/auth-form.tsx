@@ -59,6 +59,26 @@ export function AuthForm({ initialMode }: { initialMode?: AuthMode }) {
 
     try {
       if (mode === 'signup') {
+        // Check if user already exists before attempting signup
+        try {
+          const response = await fetch('/api/auth/check-user', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email })
+          })
+
+          const checkData = await response.json()
+
+          if (checkData.exists) {
+            setError('An account with this email already exists. Please sign in instead.')
+            setMode('signin')
+            return
+          }
+        } catch (checkError) {
+          console.error('Error checking user:', checkError)
+          // Continue with signup attempt even if check fails
+        }
+
         const { error, data } = await supabase.auth.signUp({
           email,
           password,
