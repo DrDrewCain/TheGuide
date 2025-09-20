@@ -96,24 +96,22 @@ export function Header() {
                 </div>
               ) : (
                 <>
-                  <Link href="/auth">
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      aria-label="Log in to your account"
-                    >
-                      Login
-                    </Button>
-                  </Link>
-                  <Link href="/auth?mode=signup">
-                    <Button
-                      variant="primary"
-                      size="sm"
-                      aria-label="Sign up for a new account"
-                    >
-                      Sign Up
-                    </Button>
-                  </Link>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    aria-label="Log in to your account"
+                    asChild
+                  >
+                    <Link href="/auth">Login</Link>
+                  </Button>
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    aria-label="Sign up for a new account"
+                    asChild
+                  >
+                    <Link href="/auth?mode=signup">Sign Up</Link>
+                  </Button>
                 </>
               )}
             </div>
@@ -169,26 +167,28 @@ export function Header() {
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    <Link href="/auth" onClick={() => setMobileMenuOpen(false)}>
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        className="w-full"
-                        aria-label="Log in to your account"
-                      >
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      className="w-full"
+                      aria-label="Log in to your account"
+                      asChild
+                    >
+                      <Link href="/auth" onClick={() => setMobileMenuOpen(false)}>
                         Login
-                      </Button>
-                    </Link>
-                    <Link href="/auth?mode=signup" onClick={() => setMobileMenuOpen(false)}>
-                      <Button
-                        variant="primary"
-                        size="sm"
-                        className="w-full"
-                        aria-label="Sign up for a new account"
-                      >
+                      </Link>
+                    </Button>
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      className="w-full"
+                      aria-label="Sign up for a new account"
+                      asChild
+                    >
+                      <Link href="/auth?mode=signup" onClick={() => setMobileMenuOpen(false)}>
                         Sign Up
-                      </Button>
-                    </Link>
+                      </Link>
+                    </Button>
                   </div>
                 )}
               </motion.div>
