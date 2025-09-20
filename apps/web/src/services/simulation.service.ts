@@ -11,8 +11,10 @@ import {
   DecisionType
 } from '@theguide/models';
 
-// Import simulation engines
+// Import simulation engine directly for now
 import { AdvancedSimulationEngine } from '@theguide/sim-engine';
+// TODO: Use worker pool when bundling is configured
+// import { simulationWorkerPool } from './worker-pool';
 
 export interface SimulationConfig {
   mode: 'fast' | 'balanced' | 'accurate';
@@ -71,7 +73,8 @@ export class SimulationService {
         message: 'Generating Monte Carlo scenarios...'
       });
 
-      // Run simulation with progress callback
+      // Run simulation directly for now
+      // TODO: Move to Web Worker when bundling is set up
       this.currentSimulation = this.engine.runAdvancedSimulation(
         decision,
         option,
@@ -79,7 +82,7 @@ export class SimulationService {
         engineConfig,
         (progress) => {
           console.log('📊 Progress from engine:', progress);
-          // Use setTimeout to escape the current execution context
+          // Use setTimeout to allow UI updates
           setTimeout(() => {
             onProgress?.({
               stage: 'generating',
@@ -130,6 +133,7 @@ export class SimulationService {
       runSensitivity: false
     };
 
+    // Quick estimates run directly
     const result = await this.engine.runAdvancedSimulation(
       decision,
       option,
@@ -163,6 +167,7 @@ export class SimulationService {
       reduceScenarios: false
     };
 
+    // Run sensitivity analysis directly
     const result = await this.engine.runAdvancedSimulation(
       decision,
       option,
@@ -203,6 +208,7 @@ export class SimulationService {
     // In a real implementation, would cancel ongoing calculations
     this.currentSimulation = null;
   }
+
 
   /**
    * Private helper methods

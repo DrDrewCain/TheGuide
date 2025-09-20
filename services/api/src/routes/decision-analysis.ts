@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import DecisionAnalysisService from '../services/ai/decision-analysis';
+import { DecisionAnalysisService } from '@theguide/ai-services';
 
 const router = Router();
 

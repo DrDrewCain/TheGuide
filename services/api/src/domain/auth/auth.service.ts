@@ -1,5 +1,5 @@
 import bcrypt from 'bcrypt';
-import * as jwt from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
 import { prisma } from '../../data/database.js';
 import { config } from '../../config/env.js';
 import { logger } from '../../utils/logger.js';
@@ -150,7 +150,7 @@ export class AuthService {
     const accessToken = jwt.sign(
       { userId, email },
       config.JWT_SECRET,
-      { expiresIn: config.JWT_EXPIRES_IN }
+      { expiresIn: config.JWT_EXPIRES_IN } as jwt.SignOptions
     );
 
     // Generate refresh token
